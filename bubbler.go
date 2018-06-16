@@ -4,9 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattn/anko/core"
-	"github.com/mattn/anko/vm"
-	"github.com/pkg/errors"
+	"github.com/gobuffalo/plush"
 )
 
 type BubbleType int
@@ -28,33 +26,25 @@ func (b *Bubbler) String() string {
 }
 
 func (b *Bubbler) Bubble(s string) (string, error) {
-	env := core.Import(vm.NewEnv())
-
 	f := fizzer{b}
+	ctx := plush.NewContextWith(map[string]interface{}{
+		"exec":             f.Exec(os.Stdout),
+		"change_column":    f.ChangeColumn(),
+		"add_column":       f.AddColumn(),
+		"drop_column":      f.DropColumn(),
+		"rename_column":    f.RenameColumn(),
+		"raw":              f.RawSql(),
+		"add_index":        f.AddIndex(),
+		"drop_index":       f.DropIndex(),
+		"rename_index":     f.RenameIndex(),
+		"add_foreign_key":  f.AddForeignKey(),
+		"drop_foreign_key": f.DropForeignKey(),
+		"create_table":     f.CreateTable(),
+		"drop_table":       f.DropTable(),
+		"rename_table":     f.RenameTable(),
+	})
 
-	// columns:
-	env.Define("change_column", f.ChangeColumn())
-	env.Define("add_column", f.AddColumn())
-	env.Define("drop_column", f.DropColumn())
-	env.Define("rename_column", f.RenameColumn())
+	err := plush.RunScript(s, ctx)
 
-	env.Define("raw", f.RawSql())
-	env.Define("exec", f.Exec(os.Stdout))
-
-	// indexes:
-	env.Define("add_index", f.AddIndex())
-	env.Define("drop_index", f.DropIndex())
-	env.Define("rename_index", f.RenameIndex())
-
-	// foreign keys
-	env.Define("add_foreign_key", f.AddForeignKey())
-	env.Define("drop_foreign_key", f.DropForeignKey())
-
-	// tables:
-	env.Define("create_table", f.CreateTable())
-	env.Define("drop_table", f.DropTable())
-	env.Define("rename_table", f.RenameTable())
-
-	_, err := env.Execute(s)
-	return b.String(), errors.Wrap(err, "parse error")
+	return b.String(), err
 }

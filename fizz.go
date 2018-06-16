@@ -1,13 +1,14 @@
 package fizz
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type Options map[string]interface{}
@@ -24,8 +25,8 @@ func (f fizzer) add(s string, err error) error {
 	return nil
 }
 
-func (f fizzer) Exec(out io.Writer) interface{} {
-	return func(s string) {
+func (f fizzer) Exec(out io.Writer) func(string) error {
+	return func(s string) error {
 		args := strings.Split(s, " ")
 		cmd := exec.Command(args[0], args[1:]...)
 		cmd.Stdin = os.Stdin
@@ -33,8 +34,9 @@ func (f fizzer) Exec(out io.Writer) interface{} {
 		cmd.Stderr = os.Stderr
 		err := cmd.Run()
 		if err != nil {
-			panic(fmt.Sprintf("error executing command: %s", s))
+			return errors.Wrapf(err, "error executing command: %s", s)
 		}
+		return nil
 	}
 }
 

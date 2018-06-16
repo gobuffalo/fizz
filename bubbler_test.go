@@ -13,6 +13,7 @@ func Test_Exec(t *testing.T) {
 	b := NewBubbler(nil)
 	f := fizzer{b}
 	bb := &bytes.Buffer{}
-	f.Exec(bb).(func(string))("echo hello")
+	c := f.Exec(bb)
+	c("echo hello")
 	r.Equal("hello\n", bb.String())
 }

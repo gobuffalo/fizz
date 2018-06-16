@@ -69,14 +69,14 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 );`
 
 	res, _ := fizz.AString(`
-	create_table("users", fn() {
+	create_table("users") {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "text", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("raw", "blob", {})
-	})
+	}
 	`, sqt)
 	r.Equal(ddl, res)
 }
@@ -96,7 +96,7 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable_UUID() {
 );`
 
 	res, _ := fizz.AString(`
-	create_table("users", fn() {
+	create_table("users") {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
@@ -104,7 +104,7 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable_UUID() {
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("company_id", "uuid", {"default_raw": "lower(hex(randomblob(16)))"})
 		t.Column("uuid", "uuid", {"primary": true})
-	})
+	}
 	`, sqt)
 	r.Equal(ddl, res)
 }

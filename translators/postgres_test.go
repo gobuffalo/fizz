@@ -24,7 +24,7 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable() {
 );`
 
 	res, _ := fizz.AString(`
-	create_table("users", fn() {
+	create_table("users") {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
@@ -32,7 +32,7 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable() {
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("raw", "blob", {})
 		t.Column("company_id", "uuid", {"default_raw": "uuid_generate_v1()"})
-	})
+	}
 	`, pgt)
 	r.Equal(ddl, res)
 }
@@ -51,14 +51,14 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable_UUID() {
 );`
 
 	res, _ := fizz.AString(`
-	create_table("users", fn() {
+	create_table("users") {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "jsonb", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("uuid", "uuid", {"primary": true})
-	})
+	}
 	`, pgt)
 	r.Equal(ddl, res)
 }
@@ -81,19 +81,20 @@ CREATE TABLE "profiles" (
 FOREIGN KEY (user_id) REFERENCES users (id)
 );`
 
-	res, _ := fizz.AString(`
-	create_table("users", fn() {
+	res, err := fizz.AString(`
+	create_table("users") {
 		t.Column("id", "INT", {"primary": true})
 		t.Column("email", "string", {"size":20})
-	})
-	create_table("profiles", fn() {
+	}
+	create_table("profiles") {
 		t.Column("id", "INT", {"primary": true})
 		t.Column("user_id", "INT", {})
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.ForeignKey("user_id", {"users": ["id"]}, {})
-	})
+	}
 	`, pgt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 

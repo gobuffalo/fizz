@@ -3,6 +3,9 @@ package fizz
 import (
 	"fmt"
 	"strings"
+
+	"github.com/gobuffalo/plush"
+	"github.com/pkg/errors"
 )
 
 type Table struct {
@@ -17,7 +20,7 @@ func (t *Table) DisableTimestamps() {
 	t.Options["timestamps"] = false
 }
 
-func (t *Table) Column(name string, colType string, options map[string]interface{}) {
+func (t *Table) Column(name string, colType string, options Options) {
 	var primary bool
 	if _, ok := options["primary"]; ok {
 		primary = true
@@ -83,13 +86,20 @@ func (t *Table) HasColumns(args ...string) bool {
 }
 
 func (f fizzer) CreateTable() interface{} {
-	return func(name string, fn func(t *Table)) {
+	return func(name string, help plush.HelperContext) error {
 		t := Table{
 			Name:    name,
 			Columns: []Column{},
 		}
 
-		fn(&t)
+		if help.HasBlock() {
+			ctx := help.Context.New()
+			ctx.Set("t", &t)
+			if _, err := help.BlockWith(ctx); err != nil {
+				return errors.WithStack(err)
+			}
+		}
+
 		var foundPrimary bool
 		for _, c := range t.Columns {
 			if c.Primary {
@@ -107,6 +117,7 @@ func (f fizzer) CreateTable() interface{} {
 		}
 
 		f.add(f.Bubbler.CreateTable(t))
+		return nil
 	}
 }
 

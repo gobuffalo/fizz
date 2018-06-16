@@ -46,7 +46,7 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable() {
 );COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`
-	create_table("users", fn() {
+	create_table("users") {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
@@ -54,7 +54,7 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable() {
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("raw", "blob", {})
 		t.Column("company_id", "uuid", {"default_raw": "uuid_generate_v1()"})
-	})
+	}
 	`, p.crdbt())
 	r.Equal(ddl, res)
 }
@@ -73,14 +73,14 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable_UUID() {
 );COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`
-	create_table("users", fn() {
+	create_table("users") {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "jsonb", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("uuid", "uuid", {"primary": true})
-	})
+	}
 	`, p.crdbt())
 	r.Equal(ddl, res)
 }
@@ -104,17 +104,17 @@ CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id)
 );COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`
-	create_table("users", fn() {
+	create_table("users") {
 		t.Column("id", "INT", {"primary": true})
 		t.Column("email", "string", {"size":20})
-	})
-	create_table("profiles", fn() {
+	}
+	create_table("profiles") {
 		t.Column("id", "INT", {"primary": true})
 		t.Column("user_id", "INT", {})
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.ForeignKey("user_id", {"users": ["id"]}, {})
-	})
+	}
 	`, p.crdbt())
 	r.Equal(ddl, res)
 }
