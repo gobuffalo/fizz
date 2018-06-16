@@ -5,7 +5,6 @@ dist: trusty
 sudo: required
 
 go:
-  - 1.8
   - 1.9
   - "1.10"
   - tip
@@ -14,14 +13,14 @@ install:
  - go get -t -v ./...
 
 before_script:
-    - go build -v -tags sqlite -o tsoda ./soda
+    - go get -v -tags sqlite github.com/gobuffalo/pop/soda
     # travis hangs when trying to create mysql db using soda. not sure why
     - mysql -e 'create database pop_test;'
-    - ./tsoda create -e "postgres"
-    - ./tsoda create -e "sqlite"
-    - ./tsoda migrate -e "mysql_travis"
-    - ./tsoda migrate -e "postgres"
-    - ./tsoda migrate -e "sqlite"
+    - soda create -e "postgres"
+    - soda create -e "sqlite"
+    - soda migrate -e "mysql_travis"
+    - soda migrate -e "postgres"
+    - soda migrate -e "sqlite"
 
 script: go test -tags sqlite ./... -v
 
