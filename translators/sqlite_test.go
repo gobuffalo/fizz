@@ -69,7 +69,7 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 );`
 
 	res, _ := fizz.AString(`
-	create_table("users", func(t) {
+	create_table("users", fn() {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
@@ -96,7 +96,7 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable_UUID() {
 );`
 
 	res, _ := fizz.AString(`
-	create_table("users", func(t) {
+	create_table("users", fn() {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})

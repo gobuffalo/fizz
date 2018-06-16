@@ -46,7 +46,7 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable() {
 );COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`
-	create_table("users", func(t) {
+	create_table("users", fn() {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
@@ -73,7 +73,7 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable_UUID() {
 );COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`
-	create_table("users", func(t) {
+	create_table("users", fn() {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
@@ -104,11 +104,11 @@ CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id)
 );COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`
-	create_table("users", func(t) {
+	create_table("users", fn() {
 		t.Column("id", "INT", {"primary": true})
 		t.Column("email", "string", {"size":20})
 	})
-	create_table("profiles", func(t) {
+	create_table("profiles", fn() {
 		t.Column("id", "INT", {"primary": true})
 		t.Column("user_id", "INT", {})
 		t.Column("first_name", "string", {})

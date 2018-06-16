@@ -24,7 +24,7 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable() {
 );`
 
 	res, _ := fizz.AString(`
-	create_table("users", func(t) {
+	create_table("users", fn() {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
@@ -51,7 +51,7 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable_UUID() {
 );`
 
 	res, _ := fizz.AString(`
-	create_table("users", func(t) {
+	create_table("users", fn() {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
@@ -82,11 +82,11 @@ FOREIGN KEY (user_id) REFERENCES users (id)
 );`
 
 	res, _ := fizz.AString(`
-	create_table("users", func(t) {
+	create_table("users", fn() {
 		t.Column("id", "INT", {"primary": true})
 		t.Column("email", "string", {"size":20})
 	})
-	create_table("profiles", func(t) {
+	create_table("profiles", fn() {
 		t.Column("id", "INT", {"primary": true})
 		t.Column("user_id", "INT", {})
 		t.Column("first_name", "string", {})
