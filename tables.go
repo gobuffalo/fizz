@@ -34,10 +34,14 @@ func (t *Table) Column(name string, colType string, options Options) {
 	t.Columns = append(t.Columns, c)
 }
 
-func (t *Table) ForeignKey(column string, refs interface{}, options Options) {
+func (t *Table) ForeignKey(column string, refs interface{}, options Options) error {
+	fkr, err := parseForeignKeyRef(refs)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 	fk := ForeignKey{
 		Column:     column,
-		References: parseForeignKeyRef(refs),
+		References: fkr,
 		Options:    options,
 	}
 
@@ -48,6 +52,7 @@ func (t *Table) ForeignKey(column string, refs interface{}, options Options) {
 	}
 
 	t.ForeignKeys = append(t.ForeignKeys, fk)
+	return nil
 }
 
 func (t *Table) Timestamp(name string) {
@@ -85,53 +90,47 @@ func (t *Table) HasColumns(args ...string) bool {
 	return true
 }
 
-func (f fizzer) CreateTable() interface{} {
-	return func(name string, help plush.HelperContext) error {
-		t := Table{
-			Name:    name,
-			Columns: []Column{},
-		}
-
-		if help.HasBlock() {
-			ctx := help.Context.New()
-			ctx.Set("t", &t)
-			if _, err := help.BlockWith(ctx); err != nil {
-				return errors.WithStack(err)
-			}
-		}
-
-		var foundPrimary bool
-		for _, c := range t.Columns {
-			if c.Primary {
-				foundPrimary = true
-				break
-			}
-		}
-
-		if !foundPrimary {
-			t.Columns = append([]Column{INT_ID_COL}, t.Columns...)
-		}
-
-		if enabled, exists := t.Options["timestamps"]; !exists || enabled == true {
-			t.Timestamps()
-		}
-
-		f.add(f.Bubbler.CreateTable(t))
-		return nil
+func (f fizzer) CreateTable(name string, help plush.HelperContext) error {
+	t := Table{
+		Name:    name,
+		Columns: []Column{},
 	}
+
+	if help.HasBlock() {
+		ctx := help.Context.New()
+		ctx.Set("t", &t)
+		if _, err := help.BlockWith(ctx); err != nil {
+			return errors.WithStack(err)
+		}
+	}
+
+	var foundPrimary bool
+	for _, c := range t.Columns {
+		if c.Primary {
+			foundPrimary = true
+			break
+		}
+	}
+
+	if !foundPrimary {
+		t.Columns = append([]Column{INT_ID_COL}, t.Columns...)
+	}
+
+	if enabled, exists := t.Options["timestamps"]; !exists || enabled == true {
+		t.Timestamps()
+	}
+
+	f.add(f.Bubbler.CreateTable(t))
+	return nil
 }
 
-func (f fizzer) DropTable() interface{} {
-	return func(name string) {
-		f.add(f.Bubbler.DropTable(Table{Name: name}))
-	}
+func (f fizzer) DropTable(name string) {
+	f.add(f.Bubbler.DropTable(Table{Name: name}))
 }
 
-func (f fizzer) RenameTable() interface{} {
-	return func(old, new string) {
-		f.add(f.Bubbler.RenameTable([]Table{
-			{Name: old},
-			{Name: new},
-		}))
-	}
+func (f fizzer) RenameTable(old, new string) {
+	f.add(f.Bubbler.RenameTable([]Table{
+		{Name: old},
+		{Name: new},
+	}))
 }

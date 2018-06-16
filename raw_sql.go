@@ -1,7 +1,10 @@
 package fizz
 
-func (f fizzer) RawSql() interface{} {
-	return func(sql string) {
-		f.add(sql, nil)
+import "strings"
+
+func (f fizzer) RawSql(sql string) {
+	if !strings.HasSuffix(sql, ";") {
+		sql += ";"
 	}
+	f.add(sql, nil)
 }
