@@ -43,15 +43,16 @@ updated_at DATETIME NOT NULL
 );`
 
 	res, _ := fizz.AString(`
-	create_table("users", {
+	create_table("users") {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "text", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("raw", "blob", {})
-	})
+	}
 	`, sqlsrv)
+
 	r.Equal(ddl, res)
 }
 
@@ -69,14 +70,14 @@ updated_at DATETIME NOT NULL
 );`
 
 	res, _ := fizz.AString(`
-	create_table("users", {
+	create_table("users") {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "text", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("uuid", "uuid", {"primary": true})
-	})
+	}
 	`, sqlsrv)
 	r.Equal(ddl, res)
 }
@@ -100,17 +101,17 @@ updated_at DATETIME NOT NULL
 ALTER TABLE profiles ADD CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id);`
 
 	res, _ := fizz.AString(`
-	create_table("users", {
+	create_table("users") {
 		t.Column("id", "INT", {"primary": true})
 		t.Column("email", "string", {"size":20})
-	})
-	create_table("profiles", {
+	}
+	create_table("profiles") {
 		t.Column("id", "INT", {"primary": true})
 		t.Column("user_id", "INT", {})
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.ForeignKey("user_id", {"users": ["id"]}, {})
-	})
+	}
 	`, sqlsrv)
 	r.Equal(ddl, res)
 }
