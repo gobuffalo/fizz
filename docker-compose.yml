@@ -28,3 +28,11 @@ services:
     volumes:
       - "./cockroach-data/roach1:/cockroach/cockroach-data"
     command: start --insecure
+  mssqlserver:
+    image: "microsoft/mssql-server-linux"
+    environment:
+      - SA_PASSWORD=Tt@12345678
+      - MSSQLSERVER_PASSWORD=Tt@12345678
+      - ACCEPT_EULA=Y
+    ports:
+      - "1433:1433"
