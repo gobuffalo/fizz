@@ -173,10 +173,8 @@ drop_foreign_key("table_name", "fk_name", {"if_exists": true})
 ## Raw SQL
 
 ``` javascript
-raw("select * from users;")
+sql("select * from users;")
 ```
-
-*All calls to `raw` must end with a `;`!*
 
 ## Execute an External Command
 

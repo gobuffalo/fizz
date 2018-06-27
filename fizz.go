@@ -3,7 +3,6 @@ package fizz
 import (
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -19,7 +18,7 @@ type fizzer struct {
 
 func (f fizzer) add(s string, err error) error {
 	if err != nil {
-		panic(err.Error())
+		return errors.WithStack(err)
 	}
 	f.Bubbler.data = append(f.Bubbler.data, s)
 	return nil
@@ -43,7 +42,7 @@ func (f fizzer) Exec(out io.Writer) func(string) error {
 func AFile(f *os.File, t Translator) (string, error) {
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		log.Fatal(err)
+		return "", errors.WithStack(err)
 	}
 	return AString(string(b), t)
 }

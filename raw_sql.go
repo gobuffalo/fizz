@@ -1,6 +1,8 @@
 package fizz
 
-import "strings"
+import (
+	"strings"
+)
 
 func (f fizzer) RawSql(sql string) {
 	if !strings.HasSuffix(sql, ";") {

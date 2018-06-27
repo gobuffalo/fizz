@@ -35,6 +35,7 @@ func (b *Bubbler) Bubble(s string) (string, error) {
 		"drop_column":      f.DropColumn,
 		"rename_column":    f.RenameColumn,
 		"raw":              f.RawSql,
+		"sql":              f.RawSql,
 		"add_index":        f.AddIndex,
 		"drop_index":       f.DropIndex,
 		"rename_index":     f.RenameIndex,
