@@ -90,10 +90,11 @@ func (t *Table) HasColumns(args ...string) bool {
 	return true
 }
 
-func (f fizzer) CreateTable(name string, help plush.HelperContext) error {
+func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush.HelperContext) error {
 	t := Table{
 		Name:    name,
 		Columns: []Column{},
+		Options: opts,
 	}
 
 	if help.HasBlock() {
