@@ -27,7 +27,7 @@ The `create_table` function will generate an `id` column of type `integer` that 
 
 ```javascript
 create_table("users") {
-  t.Column("id", "uuid", {})
+  t.Column("id", "uuid", {primary: true})
   // ...
 }
 ```
