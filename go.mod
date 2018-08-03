@@ -7,6 +7,7 @@ require (
 	github.com/gobuffalo/tags v2.0.6+incompatible // indirect
 	github.com/gobuffalo/uuid v2.0.0+incompatible // indirect
 	github.com/gobuffalo/validate v2.0.0+incompatible // indirect
+	github.com/jmoiron/sqlx v0.0.0-20180614180643-0dae4fefe7c0
 	github.com/joho/godotenv v1.2.0 // indirect
 	github.com/markbates/going v1.0.0 // indirect
 	github.com/markbates/inflect v1.0.0 // indirect
@@ -22,5 +23,5 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	github.com/sourcegraph/annotate v0.0.0-20160123013949-f4cad6c6324d // indirect
 	github.com/sourcegraph/syntaxhighlight v0.0.0-20170531221838-bd320f5d308e // indirect
-	golang.org/x/net v0.0.0-20180719180050-a680a1efc54d // indirect
+	golang.org/x/net v0.0.0-20180801234040-f4c29de78a2a // indirect
 )
