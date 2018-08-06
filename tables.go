@@ -91,6 +91,9 @@ func (t *Table) HasColumns(args ...string) bool {
 }
 
 func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush.HelperContext) error {
+	if opts == nil {
+		opts = map[string]interface{}{}
+	}
 	t := Table{
 		Name:    name,
 		Columns: []Column{},
