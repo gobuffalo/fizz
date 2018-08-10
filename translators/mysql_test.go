@@ -1,25 +1,20 @@
 package translators_test
 
 import (
-	"os"
+	"fmt"
 
+	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
-	"github.com/gobuffalo/pop"
 )
 
 var _ fizz.Translator = (*translators.MySQL)(nil)
 var myt = translators.NewMySQL("", "")
 
 func init() {
-	pwd, _ := os.Getwd()
-	pop.AddLookupPaths(pwd)
-	myconn, err := pop.Connect("mysql")
-	if err != nil {
-		panic(err.Error())
-	}
-	deets := myconn.Dialect.Details()
-	myt = translators.NewMySQL(myconn.URL(), deets.Database)
+	u := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
+	u = fmt.Sprintf(u, envy.Get("MYSQL_USER", "root"), envy.Get("MYSQL_PASSWORD", ""), envy.Get("MYSQL_HOST", "127.0.0.1"), envy.Get("MYSQL_PORT", "3306"), "pop_test", "utf8_general_ci")
+	myt = translators.NewMySQL(u, "pop_test")
 }
 
 func (p *MySQLSuite) Test_MySQL_SchemaMigration() {
