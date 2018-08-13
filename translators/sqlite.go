@@ -123,7 +123,7 @@ func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
 
 func (p *SQLite) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 	c := t.Columns[0]
 
@@ -140,7 +140,7 @@ func (p *SQLite) AddColumn(t fizz.Table) (string, error) {
 
 func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 1 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 
 	tableInfo, err := p.Schema.TableInfo(t.Name)
@@ -196,7 +196,7 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 
 func (p *SQLite) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 
 	tableInfo, err := p.Schema.TableInfo(t.Name)
