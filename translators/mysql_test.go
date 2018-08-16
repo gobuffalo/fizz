@@ -3,6 +3,8 @@ package translators_test
 import (
 	"fmt"
 
+	// Load MySQL Go driver
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
@@ -19,10 +21,10 @@ func init() {
 
 func (p *MySQLSuite) Test_MySQL_SchemaMigration() {
 	r := p.Require()
-	ddl := `CREATE TABLE schema_migrations (
-version VARCHAR (255) NOT NULL
+	ddl := `CREATE TABLE ` + "`schema_migrations`" + ` (
+` + "`version`" + ` VARCHAR (255) NOT NULL
 ) ENGINE=InnoDB;
-CREATE UNIQUE INDEX version_idx ON schema_migrations (version);`
+CREATE UNIQUE INDEX ` + "`version_idx`" + ` ON ` + "`schema_migrations`" + ` (` + "`version`" + `);`
 
 	res, err := myt.CreateTable(fizz.Table{
 		Name: "schema_migrations",
@@ -39,20 +41,20 @@ CREATE UNIQUE INDEX version_idx ON schema_migrations (version);`
 
 func (p *MySQLSuite) Test_MySQL_CreateTable() {
 	r := p.Require()
-	ddl := `CREATE TABLE users (
-id integer NOT NULL AUTO_INCREMENT,
-PRIMARY KEY(id),
-first_name VARCHAR (255) NOT NULL,
-last_name VARCHAR (255) NOT NULL,
-email VARCHAR (20) NOT NULL,
-permissions text,
-age integer DEFAULT 40,
-raw BLOB NOT NULL,
-created_at DATETIME NOT NULL,
-updated_at DATETIME NOT NULL
+	ddl := `CREATE TABLE ` + "`users`" + ` (
+` + "`id`" + ` integer NOT NULL AUTO_INCREMENT,
+PRIMARY KEY(` + "`id`" + `),
+` + "`first_name`" + ` VARCHAR (255) NOT NULL,
+` + "`last_name`" + ` VARCHAR (255) NOT NULL,
+` + "`email`" + ` VARCHAR (20) NOT NULL,
+` + "`permissions`" + ` text,
+` + "`age`" + ` integer DEFAULT 40,
+` + "`raw`" + ` BLOB NOT NULL,
+` + "`created_at`" + ` DATETIME NOT NULL,
+` + "`updated_at`" + ` DATETIME NOT NULL
 ) ENGINE=InnoDB;`
 
-	res, _ := fizz.AString(`
+	res, err := fizz.AString(`
 	create_table("users") {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
@@ -62,25 +64,26 @@ updated_at DATETIME NOT NULL
 		t.Column("raw", "blob", {})
 	}
 	`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_CreateTable_UUID() {
 	r := p.Require()
-	ddl := `CREATE TABLE users (
-first_name VARCHAR (255) NOT NULL,
-last_name VARCHAR (255) NOT NULL,
-email VARCHAR (20) NOT NULL,
-permissions text,
-age integer DEFAULT 40,
-company_id char(36) NOT NULL DEFAULT 'test',
-uuid char(36) NOT NULL,
-PRIMARY KEY(uuid),
-created_at DATETIME NOT NULL,
-updated_at DATETIME NOT NULL
+	ddl := `CREATE TABLE ` + "`users`" + ` (
+` + "`first_name`" + ` VARCHAR (255) NOT NULL,
+` + "`last_name`" + ` VARCHAR (255) NOT NULL,
+` + "`email`" + ` VARCHAR (20) NOT NULL,
+` + "`permissions`" + ` text,
+` + "`age`" + ` integer DEFAULT 40,
+` + "`company_id`" + ` char(36) NOT NULL DEFAULT 'test',
+` + "`uuid`" + ` char(36) NOT NULL,
+PRIMARY KEY(` + "`uuid`" + `),
+` + "`created_at`" + ` DATETIME NOT NULL,
+` + "`updated_at`" + ` DATETIME NOT NULL
 ) ENGINE=InnoDB;`
 
-	res, _ := fizz.AString(`
+	res, err := fizz.AString(`
 	create_table("users") {
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
@@ -91,30 +94,31 @@ updated_at DATETIME NOT NULL
 		t.Column("uuid", "uuid", {"primary": true})
 	}
 	`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_CreateTables_WithForeignKeys() {
 	r := p.Require()
-	ddl := `CREATE TABLE users (
-id INT NOT NULL AUTO_INCREMENT,
-PRIMARY KEY(id),
-email VARCHAR (20) NOT NULL,
-created_at DATETIME NOT NULL,
-updated_at DATETIME NOT NULL
+	ddl := `CREATE TABLE ` + "`users`" + ` (
+` + "`id`" + ` INT NOT NULL AUTO_INCREMENT,
+PRIMARY KEY(` + "`id`" + `),
+` + "`email`" + ` VARCHAR (20) NOT NULL,
+` + "`created_at`" + ` DATETIME NOT NULL,
+` + "`updated_at`" + ` DATETIME NOT NULL
 ) ENGINE=InnoDB;
-CREATE TABLE profiles (
-id INT NOT NULL AUTO_INCREMENT,
-PRIMARY KEY(id),
-user_id INT NOT NULL,
-first_name VARCHAR (255) NOT NULL,
-last_name VARCHAR (255) NOT NULL,
-created_at DATETIME NOT NULL,
-updated_at DATETIME NOT NULL,
-FOREIGN KEY (user_id) REFERENCES users (id)
+CREATE TABLE ` + "`profiles`" + ` (
+` + "`id`" + ` INT NOT NULL AUTO_INCREMENT,
+PRIMARY KEY(` + "`id`" + `),
+` + "`user_id`" + ` INT NOT NULL,
+` + "`first_name`" + ` VARCHAR (255) NOT NULL,
+` + "`last_name`" + ` VARCHAR (255) NOT NULL,
+` + "`created_at`" + ` DATETIME NOT NULL,
+` + "`updated_at`" + ` DATETIME NOT NULL,
+FOREIGN KEY (` + "`user_id`" + `) REFERENCES ` + "`users`" + ` (` + "`id`" + `)
 ) ENGINE=InnoDB;`
 
-	res, _ := fizz.AString(`
+	res, err := fizz.AString(`
 	create_table("users") {
 		t.Column("id", "INT", {"primary": true})
 		t.Column("email", "string", {"size":20})
@@ -127,24 +131,27 @@ FOREIGN KEY (user_id) REFERENCES users (id)
 		t.ForeignKey("user_id", {"users": ["id"]}, {})
 	}
 	`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_DropTable() {
 	r := p.Require()
 
-	ddl := `DROP TABLE users;`
+	ddl := `DROP TABLE ` + "`users`" + `;`
 
-	res, _ := fizz.AString(`drop_table("users")`, myt)
+	res, err := fizz.AString(`drop_table("users")`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_RenameTable() {
 	r := p.Require()
 
-	ddl := `ALTER TABLE users RENAME TO people;`
+	ddl := `ALTER TABLE ` + "`users`" + ` RENAME TO ` + "`people`" + `;`
 
-	res, _ := fizz.AString(`rename_table("users", "people")`, myt)
+	res, err := fizz.AString(`rename_table("users", "people")`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
@@ -157,118 +164,132 @@ func (p *MySQLSuite) Test_MySQL_RenameTable_NotEnoughValues() {
 
 func (p *MySQLSuite) Test_MySQL_ChangeColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE users MODIFY mycolumn VARCHAR (50) NOT NULL DEFAULT 'foo';`
+	ddl := `ALTER TABLE ` + "`users`" + ` MODIFY ` + "`mycolumn`" + ` VARCHAR (50) NOT NULL DEFAULT 'foo';`
 
-	res, _ := fizz.AString(`change_column("users", "mycolumn", "string", {"default": "foo", "size": 50})`, myt)
+	res, err := fizz.AString(`change_column("users", "mycolumn", "string", {"default": "foo", "size": 50})`, myt)
+	r.NoError(err)
 
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_AddColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE users ADD COLUMN mycolumn VARCHAR (50) NOT NULL DEFAULT 'foo';`
+	ddl := `ALTER TABLE ` + "`users`" + ` ADD COLUMN ` + "`mycolumn`" + ` VARCHAR (50) NOT NULL DEFAULT 'foo';`
 
-	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50})`, myt)
+	res, err := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50})`, myt)
+	r.NoError(err)
 
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_AddColumnAfter() {
 	r := p.Require()
-	ddl := `ALTER TABLE users ADD COLUMN mycolumn VARCHAR (50) NOT NULL DEFAULT 'foo' AFTER created_at;`
+	ddl := `ALTER TABLE ` + "`users`" + ` ADD COLUMN ` + "`mycolumn`" + ` VARCHAR (50) NOT NULL DEFAULT 'foo' AFTER ` + "`created_at`" + `;`
 
-	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50, "after":"created_at"})`, myt)
+	res, err := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50, "after":"created_at"})`, myt)
+	r.NoError(err)
 
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_AddColumnFirst() {
 	r := p.Require()
-	ddl := `ALTER TABLE users ADD COLUMN mycolumn VARCHAR (50) NOT NULL DEFAULT 'foo' FIRST;`
+	ddl := `ALTER TABLE ` + "`users`" + ` ADD COLUMN ` + "`mycolumn`" + ` VARCHAR (50) NOT NULL DEFAULT 'foo' FIRST;`
 
-	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50, "first":true})`, myt)
+	res, err := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50, "first":true})`, myt)
+	r.NoError(err)
 
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_DropColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE users DROP COLUMN mycolumn;`
+	ddl := `ALTER TABLE ` + "`users`" + ` DROP COLUMN ` + "`mycolumn`" + `;`
 
-	res, _ := fizz.AString(`drop_column("users", "mycolumn")`, myt)
+	res, err := fizz.AString(`drop_column("users", "mycolumn")`, myt)
+	r.NoError(err)
 
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_RenameColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE users CHANGE email email_address varchar(50) NOT NULL DEFAULT 'foo@example.com';`
+	ddl := `ALTER TABLE ` + "`users`" + ` CHANGE ` + "`email`" + ` ` + "`email_address`" + ` varchar(50) NOT NULL DEFAULT 'foo@example.com';`
 
-	res, _ := fizz.AString(`rename_column("users", "email", "email_address")`, myt)
+	res, err := fizz.AString(`rename_column("users", "email", "email_address")`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_AddIndex() {
 	r := p.Require()
-	ddl := `CREATE INDEX users_email_idx ON users (email);`
+	ddl := `CREATE INDEX ` + "`users_email_idx`" + ` ON ` + "`users`" + ` (` + "`email`" + `);`
 
-	res, _ := fizz.AString(`add_index("users", "email", {})`, myt)
+	res, err := fizz.AString(`add_index("users", "email", {})`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_AddIndex_Unique() {
 	r := p.Require()
-	ddl := `CREATE UNIQUE INDEX users_email_idx ON users (email);`
+	ddl := `CREATE UNIQUE INDEX ` + "`users_email_idx`" + ` ON ` + "`users`" + ` (` + "`email`" + `);`
 
-	res, _ := fizz.AString(`add_index("users", "email", {"unique": true})`, myt)
+	res, err := fizz.AString(`add_index("users", "email", {"unique": true})`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_AddIndex_MultiColumn() {
 	r := p.Require()
-	ddl := `CREATE INDEX users_id_email_idx ON users (id, email);`
+	ddl := `CREATE INDEX ` + "`users_id_email_idx`" + ` ON ` + "`users`" + ` (` + "`id`" + `, ` + "`email`" + `);`
 
-	res, _ := fizz.AString(`add_index("users", ["id", "email"], {})`, myt)
+	res, err := fizz.AString(`add_index("users", ["id", "email"], {})`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_AddIndex_CustomName() {
 	r := p.Require()
-	ddl := `CREATE INDEX email_index ON users (email);`
+	ddl := `CREATE INDEX ` + "`email_index`" + ` ON ` + "`users`" + ` (` + "`email`" + `);`
 
-	res, _ := fizz.AString(`add_index("users", "email", {"name": "email_index"})`, myt)
+	res, err := fizz.AString(`add_index("users", "email", {"name": "email_index"})`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_DropIndex() {
 	r := p.Require()
-	ddl := `DROP INDEX email_idx ON users;`
+	ddl := `DROP INDEX ` + "`email_idx`" + ` ON ` + "`users`" + `;`
 
-	res, _ := fizz.AString(`drop_index("users", "email_idx")`, myt)
+	res, err := fizz.AString(`drop_index("users", "email_idx")`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_RenameIndex() {
 	r := p.Require()
 
-	ddl := `ALTER TABLE users RENAME INDEX email_idx TO email_address_ix;`
+	ddl := `ALTER TABLE ` + "`users`" + ` RENAME INDEX ` + "`email_idx`" + ` TO ` + "`email_address_idx`" + `;`
 
-	res, _ := fizz.AString(`rename_index("users", "email_idx", "email_address_ix")`, myt)
+	res, err := fizz.AString(`rename_index("users", "email_idx", "email_address_ix")`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_AddForeignKey() {
 	r := p.Require()
-	ddl := `ALTER TABLE profiles ADD CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id);`
+	ddl := `ALTER TABLE ` + "`profiles`" + ` ADD CONSTRAINT ` + "`profiles_users_id_fk`" + ` FOREIGN KEY (` + "`user_id`" + `) REFERENCES ` + "`users`" + ` (` + "`id`" + `);`
 
-	res, _ := fizz.AString(`add_foreign_key("profiles", "user_id", {"users": ["id"]}, {})`, myt)
+	res, err := fizz.AString(`add_foreign_key("profiles", "user_id", {"users": ["id"]}, {})`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
 
 func (p *MySQLSuite) Test_MySQL_DropForeignKey() {
 	r := p.Require()
-	ddl := `ALTER TABLE profiles DROP FOREIGN KEY  profiles_users_id_fk;`
+	ddl := `ALTER TABLE ` + "`profiles`" + ` DROP FOREIGN KEY  ` + "`profiles_users_id_fk`" + `;`
 
-	res, _ := fizz.AString(`drop_foreign_key("profiles", "profiles_users_id_fk", {})`, myt)
+	res, err := fizz.AString(`drop_foreign_key("profiles", "profiles_users_id_fk", {})`, myt)
+	r.NoError(err)
 	r.Equal(ddl, res)
 }
