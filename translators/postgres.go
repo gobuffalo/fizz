@@ -65,14 +65,14 @@ func (p *Postgres) DropTable(t fizz.Table) (string, error) {
 
 func (p *Postgres) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
-		return "", errors.New("Not enough table names supplied!")
+		return "", errors.New("not enough table names supplied")
 	}
 	return fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", t[0].Name, t[1].Name), nil
 }
 
 func (p *Postgres) ChangeColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	s := fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN %s;", t.Name, p.buildChangeColumn(c))
@@ -81,7 +81,7 @@ func (p *Postgres) ChangeColumn(t fizz.Table) (string, error) {
 
 func (p *Postgres) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", t.Name, p.buildAddColumn(c))
@@ -90,7 +90,7 @@ func (p *Postgres) AddColumn(t fizz.Table) (string, error) {
 
 func (p *Postgres) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	return fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";", t.Name, c.Name), nil
@@ -98,7 +98,7 @@ func (p *Postgres) DropColumn(t fizz.Table) (string, error) {
 
 func (p *Postgres) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 	oc := t.Columns[0]
 	nc := t.Columns[1]

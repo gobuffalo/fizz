@@ -1,6 +1,7 @@
 package fizz
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -14,6 +15,17 @@ type Table struct {
 	Indexes     []Index
 	ForeignKeys []ForeignKey
 	Options     map[string]interface{}
+}
+
+func (t Table) String() string {
+	var buff bytes.Buffer
+
+	buff.WriteString(fmt.Sprintf("create_table(\"%s\") {\n", t.Name))
+	for _, c := range t.Columns {
+		buff.WriteString(fmt.Sprintf("\t%s\n", c.String()))
+	}
+	buff.WriteString("}")
+	return buff.String()
 }
 
 func (t *Table) DisableTimestamps() {
@@ -91,9 +103,6 @@ func (t *Table) HasColumns(args ...string) bool {
 }
 
 func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush.HelperContext) error {
-	if opts == nil {
-		opts = map[string]interface{}{}
-	}
 	t := Table{
 		Name:    name,
 		Columns: []Column{},
