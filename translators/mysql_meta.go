@@ -37,8 +37,8 @@ func (ti mysqlTableInfo) ToColumn() fizz.Column {
 	return c
 }
 
-var mysql57Version = semver.MustParse("5.7")
-var mysql80Version = semver.MustParse("8.0")
+var mysql57Version = semver.MustParse("5.7.0")
+var mysql80Version = semver.MustParse("8.0.0")
 
 type mysqlSchema struct {
 	Schema

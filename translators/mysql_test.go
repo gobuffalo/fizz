@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var mysql80Version = semver.MustParse("8.0")
+var mysql80Version = semver.MustParse("8.0.0")
 var _ fizz.Translator = (*translators.MySQL)(nil)
 var myt = translators.NewMySQL("", "")
 var u string
