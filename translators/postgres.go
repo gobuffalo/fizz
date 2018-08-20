@@ -31,9 +31,11 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 			default:
 				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
 			}
-			cols = append(cols, fmt.Sprintf(`PRIMARY KEY("%s")`, c.Name))
 		}
 		cols = append(cols, p.buildAddColumn(c))
+		if c.Primary {
+			cols = append(cols, fmt.Sprintf(`PRIMARY KEY("%s")`, c.Name))
+		}
 	}
 
 	for _, fk := range t.ForeignKeys {
