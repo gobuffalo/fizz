@@ -4,19 +4,45 @@ import (
 	"fmt"
 
 	// Load MySQL Go driver
+	"github.com/blang/semver"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
+	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 )
 
+var mysql80Version = semver.MustParse("8.0")
 var _ fizz.Translator = (*translators.MySQL)(nil)
 var myt = translators.NewMySQL("", "")
+var u string
 
 func init() {
 	u := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
 	u = fmt.Sprintf(u, envy.Get("MYSQL_USER", "root"), envy.Get("MYSQL_PASSWORD", ""), envy.Get("MYSQL_HOST", "127.0.0.1"), envy.Get("MYSQL_PORT", "3306"), "pop_test", "utf8_general_ci")
 	myt = translators.NewMySQL(u, "pop_test")
+}
+
+func (p *MySQLSuite) version() (*semver.Version, error) {
+	var version *semver.Version
+
+	db, err := sqlx.Open("mysql", u)
+	if err != nil {
+		return version, err
+	}
+	defer db.Close()
+
+	res, err := db.Queryx("SELECT VERSION()")
+	if err != nil {
+		return version, err
+	}
+
+	for res.Next() {
+		err = res.Scan(&version)
+		return version, err
+	}
+	return nil, errors.New("could not locate MySQL version")
 }
 
 func (p *MySQLSuite) Test_MySQL_SchemaMigration() {
@@ -215,7 +241,15 @@ func (p *MySQLSuite) Test_MySQL_DropColumn() {
 
 func (p *MySQLSuite) Test_MySQL_RenameColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE ` + "`users`" + ` CHANGE ` + "`email`" + ` ` + "`email_address`" + ` varchar(50) NOT NULL DEFAULT 'foo@example.com';`
+	var ddl string
+
+	v, err := p.version()
+	r.NoError(err)
+	if v.GTE(mysql80Version) {
+		ddl = `ALTER TABLE ` + "`users`" + ` RENAME COLUMN ` + "`email`" + ` TO ` + "`email_address`" + `;`
+	} else {
+		ddl = `ALTER TABLE ` + "`users`" + ` CHANGE ` + "`email`" + ` ` + "`email_address`" + ` varchar(50) NOT NULL DEFAULT 'foo@example.com';`
+	}
 
 	res, err := fizz.AString(`rename_column("users", "email", "email_address")`, myt)
 	r.NoError(err)

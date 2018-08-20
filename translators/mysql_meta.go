@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/blang/semver"
+
 	"github.com/gobuffalo/fizz"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -35,13 +37,21 @@ func (ti mysqlTableInfo) ToColumn() fizz.Column {
 	return c
 }
 
+var mysql57Version = semver.MustParse("5.7")
+var mysql80Version = semver.MustParse("8.0")
+
 type mysqlSchema struct {
 	Schema
+	version *semver.Version
 }
 
-func (p *mysqlSchema) Version() (string, error) {
-	var version string
+func (p *mysqlSchema) Version() (*semver.Version, error) {
+	// Use the cached version, if available.
 	var err error
+	if p.version != nil {
+		return p.version, err
+	}
+	var version *semver.Version
 
 	p.db, err = sqlx.Open("mysql", p.URL)
 	if err != nil {
@@ -49,16 +59,17 @@ func (p *mysqlSchema) Version() (string, error) {
 	}
 	defer p.db.Close()
 
-	res, err := p.db.Queryx("select VERSION()")
+	res, err := p.db.Queryx("SELECT VERSION()")
 	if err != nil {
 		return version, err
 	}
 
 	for res.Next() {
 		err = res.Scan(&version)
+		p.version = version
 		return version, err
 	}
-	return "", errors.New("could not locate MySQL version")
+	return nil, errors.New("could not locate MySQL version")
 }
 
 func (p *mysqlSchema) Build() error {

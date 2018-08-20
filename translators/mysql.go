@@ -17,7 +17,7 @@ type MySQL struct {
 
 // NewMySQL constructs a new MySQL translator.
 func NewMySQL(url, name string) *MySQL {
-	schema := &mysqlSchema{Schema{URL: url, Name: name, schema: map[string]*fizz.Table{}}}
+	schema := &mysqlSchema{Schema: Schema{URL: url, Name: name, schema: map[string]*fizz.Table{}}}
 	schema.Builder = schema
 	return &MySQL{
 		Schema: schema,
@@ -114,6 +114,17 @@ func (p *MySQL) RenameColumn(t fizz.Table) (string, error) {
 	oc := t.Columns[0]
 	nc := t.Columns[1]
 
+	schema := p.Schema.(*mysqlSchema)
+	version, err := schema.Version()
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	if version.GTE(mysql80Version) {
+		// MySQL 8.0 introduces a simpler version!
+		s := fmt.Sprintf("ALTER TABLE %s RENAME COLUMN %s TO %s;", p.escapeIdentifier(t.Name), p.escapeIdentifier(oc.Name), p.escapeIdentifier(nc.Name))
+		return s, nil
+	}
+
 	ti, err := p.Schema.TableInfo(t.Name)
 	if err != nil {
 		return "", err
@@ -160,7 +171,7 @@ func (p *MySQL) RenameIndex(t fizz.Table) (string, error) {
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
-	if !strings.HasPrefix(version, "5.7") {
+	if version.LT(mysql57Version) {
 		return "", errors.New("renaming indexes on MySQL versions less than 5.7 is not supported by fizz; use raw SQL instead")
 	}
 	ix := t.Indexes
