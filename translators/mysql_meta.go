@@ -73,7 +73,13 @@ func (p *mysqlSchema) Version() (*semver.Version, error) {
 }
 
 func (p *mysqlSchema) Build() error {
-	var err error
+	v, err := p.Version()
+
+	if v.GTE(mysql80Version) {
+		// Skip the rest, we don't need it since MySQL 8.0
+		return nil
+	}
+
 	p.db, err = sqlx.Open("mysql", p.URL)
 	if err != nil {
 		return err
