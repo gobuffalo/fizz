@@ -7,6 +7,13 @@ import (
 	"github.com/gobuffalo/fizz/translators"
 )
 
+var IntIDCol = fizz.Column{
+	Name:    "id",
+	Primary: true,
+	ColType: "integer",
+	Options: fizz.Options{},
+}
+
 var _ fizz.Translator = (*translators.SQLite)(nil)
 var schema = &fauxSchema{schema: map[string]*fizz.Table{}}
 var sqt = &translators.SQLite{Schema: schema}
@@ -70,6 +77,7 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 
 	res, _ := fizz.AString(`
 	create_table("users") {
+		t.Column("id", "integer", {"primary": true})
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
@@ -150,7 +158,7 @@ DROP TABLE "_users_tmp";`
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
 		Columns: []fizz.Column{
-			fizz.INT_ID_COL,
+			IntIDCol,
 			fizz.CREATED_COL,
 			fizz.UPDATED_COL,
 		},
@@ -185,7 +193,7 @@ DROP TABLE "_users_tmp";`
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
 		Columns: []fizz.Column{
-			fizz.INT_ID_COL,
+			IntIDCol,
 			fizz.CREATED_COL,
 			fizz.UPDATED_COL,
 		},
@@ -209,7 +217,7 @@ DROP TABLE "_users_tmp";`
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
 		Columns: []fizz.Column{
-			fizz.INT_ID_COL,
+			IntIDCol,
 			fizz.CREATED_COL,
 			fizz.UPDATED_COL,
 		},
@@ -288,7 +296,7 @@ CREATE UNIQUE INDEX "new_ix" ON "users" (id, created_at);`
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
 		Columns: []fizz.Column{
-			fizz.INT_ID_COL,
+			IntIDCol,
 			fizz.CREATED_COL,
 			fizz.UPDATED_COL,
 		},

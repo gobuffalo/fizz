@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// Deprecated: Fizz won't force you to have an ID field now.
 var INT_ID_COL = Column{
 	Name:    "id",
 	Primary: true,
@@ -14,6 +15,7 @@ var INT_ID_COL = Column{
 	Options: Options{},
 }
 
+// Deprecated: Fizz won't force you to have an ID field now.
 var UUID_ID_COL = Column{
 	Name:    "id",
 	Primary: true,

@@ -26,6 +26,7 @@ PRIMARY KEY("id"),
 
 	res, _ := fizz.AString(`
 	create_table("users") {
+		t.Column("id", "integer", {"primary": true})
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})

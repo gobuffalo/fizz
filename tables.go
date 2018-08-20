@@ -117,18 +117,6 @@ func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush
 		}
 	}
 
-	var foundPrimary bool
-	for _, c := range t.Columns {
-		if c.Primary {
-			foundPrimary = true
-			break
-		}
-	}
-
-	if !foundPrimary {
-		t.Columns = append([]Column{INT_ID_COL}, t.Columns...)
-	}
-
 	if enabled, exists := t.Options["timestamps"]; !exists || enabled == true {
 		t.Timestamps()
 	}
