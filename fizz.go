@@ -39,6 +39,7 @@ func (f fizzer) Exec(out io.Writer) func(string) error {
 	}
 }
 
+// AFile reads a fizz file, and translates its contents to SQL.
 func AFile(f *os.File, t Translator) (string, error) {
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
@@ -47,6 +48,7 @@ func AFile(f *os.File, t Translator) (string, error) {
 	return AString(string(b), t)
 }
 
+// AString reads a fizz string, and translates its contents to SQL.
 func AString(s string, t Translator) (string, error) {
 	b := NewBubbler(t)
 	return b.Bubble(s)
