@@ -39,6 +39,8 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 				s = fmt.Sprintf("\"%s\" INTEGER PRIMARY KEY AUTOINCREMENT", c.Name)
 			case "uuid", "string":
 				s = fmt.Sprintf("\"%s\" TEXT PRIMARY KEY", c.Name)
+			default:
+				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
 			}
 		} else {
 			s = p.buildColumn(c)
