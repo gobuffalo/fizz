@@ -35,7 +35,7 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 	for _, c := range t.Columns {
 		if c.Primary {
 			switch strings.ToLower(c.ColType) {
-			case "integer":
+			case "integer", "int":
 				s = fmt.Sprintf("\"%s\" INTEGER PRIMARY KEY AUTOINCREMENT", c.Name)
 			case "uuid", "string":
 				s = fmt.Sprintf("\"%s\" TEXT PRIMARY KEY", c.Name)
