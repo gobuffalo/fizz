@@ -11,7 +11,8 @@ var pgt = translators.NewPostgres()
 func (p *PostgreSQLSuite) Test_Postgres_CreateTable() {
 	r := p.Require()
 	ddl := `CREATE TABLE "users" (
-"id" SERIAL PRIMARY KEY,
+"id" SERIAL NOT NULL,
+PRIMARY KEY("id"),
 "first_name" VARCHAR (255) NOT NULL,
 "last_name" VARCHAR (255) NOT NULL,
 "email" VARCHAR (20) NOT NULL,
@@ -46,7 +47,8 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable_UUID() {
 "email" VARCHAR (20) NOT NULL,
 "permissions" jsonb,
 "age" integer DEFAULT '40',
-"uuid" UUID PRIMARY KEY,
+"uuid" UUID NOT NULL,
+PRIMARY KEY("uuid"),
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL
 );`
@@ -64,16 +66,50 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable_UUID() {
 	r.Equal(ddl, res)
 }
 
+func (p *PostgreSQLSuite) Test_Postgres_CreateTable_UUID_With_Default() {
+	r := p.Require()
+	ddl := `CREATE TABLE "users" (
+"uuid" UUID NOT NULL DEFAULT uuid_generate_v4(),
+PRIMARY KEY("uuid")
+);`
+
+	res, _ := fizz.AString(`
+	create_table("users") {
+		t.Column("uuid", "uuid", {"primary": true, "default_raw": "uuid_generate_v4()"})
+		t.DisableTimestamps()
+	}
+	`, pgt)
+	r.Equal(ddl, res)
+}
+
+func (p *PostgreSQLSuite) Test_Postgres_CreateTable_Cant_Set_PK_To_Nullable() {
+	r := p.Require()
+	ddl := `CREATE TABLE "users" (
+"uuid" UUID NOT NULL,
+PRIMARY KEY("uuid")
+);`
+
+	res, _ := fizz.AString(`
+	create_table("users") {
+		t.Column("uuid", "uuid", {"primary": true, "null": true})
+		t.DisableTimestamps()
+	}
+	`, pgt)
+	r.Equal(ddl, res)
+}
+
 func (p *PostgreSQLSuite) Test_Postgre_CreateTables_WithForeignKeys() {
 	r := p.Require()
 	ddl := `CREATE TABLE "users" (
-"id" SERIAL PRIMARY KEY,
+"id" SERIAL NOT NULL,
+PRIMARY KEY("id"),
 "email" VARCHAR (20) NOT NULL,
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL
 );
 CREATE TABLE "profiles" (
-"id" SERIAL PRIMARY KEY,
+"id" SERIAL NOT NULL,
+PRIMARY KEY("id"),
 "user_id" INT NOT NULL,
 "first_name" VARCHAR (255) NOT NULL,
 "last_name" VARCHAR (255) NOT NULL,

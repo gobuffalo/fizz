@@ -23,19 +23,19 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 	for _, c := range t.Columns {
 		if c.Primary {
 			switch c.ColType {
-			case "string", "uuid":
-				s = fmt.Sprintf("\"%s\" %s PRIMARY KEY", c.Name, p.colType(c))
+			case "string", "uuid": // make sure that we don't fall into default
 			case "integer", "INT", "int":
-				s = fmt.Sprintf("\"%s\" SERIAL PRIMARY KEY", c.Name)
+				c.ColType = "SERIAL"
 			case "bigint", "BIGINT":
-				s = fmt.Sprintf("\"%s\" BIGSERIAL PRIMARY KEY", c.Name)
+				c.ColType = "BIGSERIAL"
 			default:
 				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
 			}
-		} else {
-			s = p.buildAddColumn(c)
 		}
-		cols = append(cols, s)
+		cols = append(cols, p.buildAddColumn(c))
+		if c.Primary {
+			cols = append(cols, fmt.Sprintf(`PRIMARY KEY("%s")`, c.Name))
+		}
 	}
 
 	for _, fk := range t.ForeignKeys {
@@ -163,7 +163,7 @@ func (p *Postgres) DropForeignKey(t fizz.Table) (string, error) {
 func (p *Postgres) buildAddColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 
-	if c.Options["null"] == nil {
+	if c.Options["null"] == nil || c.Primary {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
 	if c.Options["default"] != nil {
