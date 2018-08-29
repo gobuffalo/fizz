@@ -19,6 +19,20 @@ func Test_Column_Stringer(t *testing.T) {
 		r.Equal(`t.Column("pk", "int", {primary: true})`, c.String())
 	})
 
+	t.Run("primary column with raw default", func(tt *testing.T) {
+		r := require.New(tt)
+		c := fizz.Column{
+			Name:    "pk",
+			ColType: "int",
+			Primary: true,
+			Options: map[string]interface{}{
+				"default_raw": "uuid_generate_v4()",
+			},
+		}
+
+		r.Equal(`t.Column("pk", "int", {default_raw: "uuid_generate_v4()", primary: true})`, c.String())
+	})
+
 	t.Run("simple column", func(tt *testing.T) {
 		r := require.New(tt)
 		c := fizz.Column{
