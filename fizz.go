@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
 
+	"github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 )
 
@@ -26,12 +26,15 @@ func (f fizzer) add(s string, err error) error {
 
 func (f fizzer) Exec(out io.Writer) func(string) error {
 	return func(s string) error {
-		args := strings.Split(s, " ")
+		args, err := shellquote.Split(s)
+		if err != nil {
+			return errors.Wrapf(err, "error parsing command: %s", s)
+		}
 		cmd := exec.Command(args[0], args[1:]...)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = out
 		cmd.Stderr = os.Stderr
-		err := cmd.Run()
+		err = cmd.Run()
 		if err != nil {
 			return errors.Wrapf(err, "error executing command: %s", s)
 		}
