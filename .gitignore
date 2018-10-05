@@ -27,4 +27,4 @@ generated/
 bin/*
 gin-bin
 .idea/
-cockroach-data
+cockroach-data/
