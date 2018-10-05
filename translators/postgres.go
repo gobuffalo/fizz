@@ -210,8 +210,22 @@ func (p *Postgres) colType(c fizz.Column) string {
 		return "UUID"
 	case "time", "datetime":
 		return "timestamp"
-	case "blob":
+	case "blob", "[]byte":
 		return "bytea"
+	case "integer":
+		return "decimal"
+	case "float":
+		return "decimal"
+	case "[]string":
+		return "varchar[]"
+	case "[]float":
+		return "decimal[]"
+	case "[]int":
+		return "integer[]"
+	case "json":
+		return "jsonb"
+	case "decimal":
+		return "decimal"
 	default:
 		return c.ColType
 	}
