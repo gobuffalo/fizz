@@ -47,15 +47,15 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable_UUID() {
 "email" VARCHAR (20) NOT NULL,
 "permissions" jsonb,
 "age" integer DEFAULT '40',
-"uuid" UUID NOT NULL,
 "integer" integer NOT NULL,
 "float" decimal NOT NULL,
 "bytes" bytea NOT NULL,
-"strings" string[] NOT NULL,
+"strings" varchar[] NOT NULL,
 "floats" decimal[] NOT NULL,
 "ints" integer[] NOT NULL,
 "jason" jsonb NOT NULL,
 "mydecimal" decimal NOT NULL,
+"uuid" UUID NOT NULL,
 PRIMARY KEY("uuid"),
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL
@@ -68,15 +68,15 @@ PRIMARY KEY("uuid"),
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "jsonb", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
-		t.Column("uuid", "uuid", {"primary": true})
-		
 		t.Column("integer", "integer", {})
 		t.Column("float", "float", {})
 		t.Column("bytes", "[]byte", {})
 		t.Column("strings", "[]string", {})
 		t.Column("floats", "[]float", {})
+		t.Column("ints", "[]int", {})
 		t.Column("jason", "json", {})
 		t.Column("mydecimal", "decimal", {})
+		t.Column("uuid", "uuid", {"primary": true})
 	}
 	`, pgt)
 	r.Equal(ddl, res)

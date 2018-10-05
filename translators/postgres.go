@@ -212,8 +212,6 @@ func (p *Postgres) colType(c fizz.Column) string {
 		return "timestamp"
 	case "blob", "[]byte":
 		return "bytea"
-	case "integer":
-		return "decimal"
 	case "float":
 		return "decimal"
 	case "[]string":
@@ -224,8 +222,6 @@ func (p *Postgres) colType(c fizz.Column) string {
 		return "integer[]"
 	case "json":
 		return "jsonb"
-	case "decimal":
-		return "decimal"
 	default:
 		return c.ColType
 	}
