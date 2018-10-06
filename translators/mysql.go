@@ -230,8 +230,14 @@ func (p *MySQL) colType(c fizz.Column) string {
 		return "char(36)"
 	case "timestamp", "time", "datetime":
 		return "DATETIME"
-	case "blob":
+	case "blob", "[]byte":
 		return "BLOB"
+	case "int", "integer":
+		return "INT"
+	case "float", "decimal":
+		return "FLOAT"
+	case "json":
+		return "JSON"
 	default:
 		return c.ColType
 	}
