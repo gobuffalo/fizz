@@ -30,3 +30,5 @@ gin-bin
 cockroach-data/
 migrations/schema.sql
 vendor/
+sqldumps/
+sql/
