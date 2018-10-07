@@ -39,8 +39,7 @@ func (p *MySQL) CreateTable(t fizz.Table) (string, error) {
 		cols = append(cols, p.buildForeignKey(t, fk, true))
 	}
 
-	s := fmt.Sprintf("CREATE TABLE %s (\n%s\n) ENGINE=InnoDB;", p.escapeIdentifier(t.Name), strings.Join(cols, ",\n"))
-
+	s := fmt.Sprintf("CREATE TABLE %s (\n%s\n) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;", p.escapeIdentifier(t.Name), strings.Join(cols, ",\n"))
 	sql = append(sql, s)
 
 	for _, i := range t.Indexes {

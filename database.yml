@@ -3,8 +3,11 @@ mysql:
   database: "pop_test"
   host: {{ envOr "MYSQL_HOST" "127.0.0.1"  }}
   port: {{ envOr "MYSQL_PORT" "3306"  }}
-  user: {{ envOr "MYSQL_USER"  "root"  }}
-  password: {{ envOr "MYSQL_PASSWORD" "root"  }}
+  user: {{ envOr "MYSQL_USER"  "fizz"  }}
+  password: {{ envOr "MYSQL_PASSWORD" "fizz"  }}
+  options: 
+    collation: utf8mb4_general_ci
+    charset: utf8mb4,utf8
 
 mysql_travis:
   dialect: "mysql"

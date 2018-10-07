@@ -26,8 +26,8 @@ function test {
   go test -tags sqlite $verbose $(go list ./... | grep -v /vendor/)
 }
 
-# test "postgres"
-# test "cockroach"
+test "postgres"
+test "cockroach"
 test "mysql"
 test "sqlite"
 
