@@ -1,0 +1,66 @@
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
+# github.com/fatih/structs v1.0.0
+github.com/fatih/structs
+# github.com/go-sql-driver/mysql v1.4.0
+github.com/go-sql-driver/mysql
+# github.com/gobuffalo/envy v1.6.4
+github.com/gobuffalo/envy
+# github.com/gobuffalo/github_flavored_markdown v1.0.5
+github.com/gobuffalo/github_flavored_markdown
+github.com/gobuffalo/github_flavored_markdown/internal/russross/blackfriday
+# github.com/gobuffalo/plush v3.7.16+incompatible
+github.com/gobuffalo/plush
+github.com/gobuffalo/plush/ast
+github.com/gobuffalo/plush/parser
+github.com/gobuffalo/plush/token
+github.com/gobuffalo/plush/lexer
+# github.com/gobuffalo/tags v2.0.11+incompatible
+github.com/gobuffalo/tags
+github.com/gobuffalo/tags/form
+github.com/gobuffalo/tags/form/bootstrap
+# github.com/gobuffalo/uuid v2.0.3+incompatible
+github.com/gobuffalo/uuid
+# github.com/gobuffalo/validate v2.0.3+incompatible
+github.com/gobuffalo/validate
+github.com/gobuffalo/validate/validators
+# github.com/jmoiron/sqlx v0.0.0-20180614180643-0dae4fefe7c0
+github.com/jmoiron/sqlx
+github.com/jmoiron/sqlx/reflectx
+# github.com/joho/godotenv v1.3.0
+github.com/joho/godotenv
+# github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
+github.com/kballard/go-shellquote
+# github.com/markbates/inflect v1.0.0
+github.com/markbates/inflect
+# github.com/microcosm-cc/bluemonday v1.0.1
+github.com/microcosm-cc/bluemonday
+# github.com/pkg/errors v0.8.0
+github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
+# github.com/serenize/snaker v0.0.0-20171204205717-a683aaf2d516
+github.com/serenize/snaker
+# github.com/sergi/go-diff v1.0.0
+github.com/sergi/go-diff/diffmatchpatch
+# github.com/shurcooL/highlight_diff v0.0.0-20170515013008-09bb4053de1b
+github.com/shurcooL/highlight_diff
+# github.com/shurcooL/highlight_go v0.0.0-20170515013102-78fb10f4a5f8
+github.com/shurcooL/highlight_go
+# github.com/shurcooL/octicon v0.0.0-20180602230221-c42b0e3b24d9
+github.com/shurcooL/octicon
+# github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95
+github.com/shurcooL/sanitized_anchor_name
+# github.com/sourcegraph/annotate v0.0.0-20160123013949-f4cad6c6324d
+github.com/sourcegraph/annotate
+# github.com/sourcegraph/syntaxhighlight v0.0.0-20170531221838-bd320f5d308e
+github.com/sourcegraph/syntaxhighlight
+# github.com/stretchr/testify v1.2.2
+github.com/stretchr/testify/require
+github.com/stretchr/testify/suite
+github.com/stretchr/testify/assert
+# golang.org/x/net v0.0.0-20180926154720-4dfa2610cdf3
+golang.org/x/net/html
+golang.org/x/net/html/atom
+# google.golang.org/appengine v1.2.0
+google.golang.org/appengine/cloudsql

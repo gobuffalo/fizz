@@ -233,7 +233,7 @@ func (p *MySQL) colType(c fizz.Column) string {
 	case "blob", "[]byte":
 		return "BLOB"
 	case "int", "integer":
-		return "INT"
+		return "INTEGER"
 	case "float", "decimal":
 		return "FLOAT"
 	case "json":
