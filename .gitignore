@@ -29,3 +29,4 @@ gin-bin
 .idea/
 cockroach-data/
 migrations/schema.sql
+vendor/
