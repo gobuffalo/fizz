@@ -3,11 +3,10 @@ package fizz
 import (
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
-	"strings"
 
+	"github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 )
 
@@ -19,7 +18,7 @@ type fizzer struct {
 
 func (f fizzer) add(s string, err error) error {
 	if err != nil {
-		panic(err.Error())
+		return errors.WithStack(err)
 	}
 	f.Bubbler.data = append(f.Bubbler.data, s)
 	return nil
@@ -27,12 +26,15 @@ func (f fizzer) add(s string, err error) error {
 
 func (f fizzer) Exec(out io.Writer) func(string) error {
 	return func(s string) error {
-		args := strings.Split(s, " ")
+		args, err := shellquote.Split(s)
+		if err != nil {
+			return errors.Wrapf(err, "error parsing command: %s", s)
+		}
 		cmd := exec.Command(args[0], args[1:]...)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = out
 		cmd.Stderr = os.Stderr
-		err := cmd.Run()
+		err = cmd.Run()
 		if err != nil {
 			return errors.Wrapf(err, "error executing command: %s", s)
 		}
@@ -40,14 +42,16 @@ func (f fizzer) Exec(out io.Writer) func(string) error {
 	}
 }
 
+// AFile reads a fizz file, and translates its contents to SQL.
 func AFile(f *os.File, t Translator) (string, error) {
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		log.Fatal(err)
+		return "", errors.WithStack(err)
 	}
 	return AString(string(b), t)
 }
 
+// AString reads a fizz string, and translates its contents to SQL.
 func AString(s string, t Translator) (string, error) {
 	b := NewBubbler(t)
 	return b.Bubble(s)
