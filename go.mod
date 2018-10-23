@@ -13,14 +13,14 @@ require (
 	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lib/pq v1.0.0 // indirect
-	github.com/markbates/inflect v1.0.0 // indirect
+	github.com/markbates/inflect v1.0.1 // indirect
 	github.com/mattn/go-sqlite3 v1.9.0 // indirect
 	github.com/onsi/gomega v1.4.2 // indirect
 	github.com/pkg/errors v0.8.0
 	github.com/serenize/snaker v0.0.0-20171204205717-a683aaf2d516 // indirect
 	github.com/stretchr/testify v1.2.2
-	golang.org/x/net v0.0.0-20180926154720-4dfa2610cdf3 // indirect
-	golang.org/x/sys v0.0.0-20180927150500-dad3d9fb7b6e // indirect
+	golang.org/x/net v0.0.0-20181005035420-146acd28ed58 // indirect
+	golang.org/x/sys v0.0.0-20181005133103-4497e2df6f9e // indirect
 	google.golang.org/appengine v1.2.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 )
