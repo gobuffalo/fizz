@@ -5,9 +5,6 @@ mysql:
   port: {{ envOr "MYSQL_PORT" "3306"  }}
   user: {{ envOr "MYSQL_USER"  "root"  }}
   password: {{ envOr "MYSQL_PASSWORD" "root"  }}
-  options: 
-    collation: utf8mb4_general_ci
-    charset: utf8mb4,utf8
 
 mysql_travis:
   dialect: "mysql"
