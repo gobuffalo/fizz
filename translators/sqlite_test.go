@@ -68,9 +68,13 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 "first_name" TEXT NOT NULL,
 "last_name" TEXT NOT NULL,
 "email" TEXT NOT NULL,
-"permissions" text,
-"age" integer DEFAULT '40',
+"permissions" TEXT,
+"age" INTEGER DEFAULT '40',
 "raw" BLOB NOT NULL,
+"into" INTEGER NOT NULL,
+"flotante" REAL NOT NULL,
+"json" TEXT NOT NULL,
+"bytes" BLOB NOT NULL,
 "created_at" DATETIME NOT NULL,
 "updated_at" DATETIME NOT NULL
 );`
@@ -84,6 +88,10 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 		t.Column("permissions", "text", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("raw", "blob", {})
+		t.Column("into", "int", {})
+		t.Column("flotante", "float", {})
+		t.Column("json", "json", {})
+		t.Column("bytes", "[]byte", {})
 	}
 	`, sqt)
 	r.Equal(ddl, res)
@@ -95,8 +103,8 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable_UUID() {
 "first_name" TEXT NOT NULL,
 "last_name" TEXT NOT NULL,
 "email" TEXT NOT NULL,
-"permissions" text,
-"age" integer DEFAULT '40',
+"permissions" TEXT,
+"age" INTEGER DEFAULT '40',
 "company_id" char(36) NOT NULL DEFAULT lower(hex(randomblob(16))),
 "uuid" TEXT PRIMARY KEY,
 "created_at" DATETIME NOT NULL,

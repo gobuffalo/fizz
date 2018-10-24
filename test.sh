@@ -12,17 +12,17 @@ then
 fi
 
 docker-compose up -d
-sleep 4 # Ensure mysql is online
+sleep 10 # Ensure mysql is online
 
-go get -v -tags sqlite github.com/gobuffalo/pop
+go get -v -tags sqlite github.com/gobuffalo/pop/...
 # go build -v -tags sqlite -o tsoda ./soda
 
 function test {
   echo "!!! Testing $1"
   export SODA_DIALECT=$1
-  soda drop -e $SODA_DIALECT -c ./database.yml
-  soda create -e $SODA_DIALECT -c ./database.yml
-  soda migrate -e $SODA_DIALECT -c ./database.yml
+  soda drop -e $SODA_DIALECT
+  soda create -e $SODA_DIALECT
+  soda migrate -e $SODA_DIALECT
   go test -tags sqlite $verbose $(go list ./... | grep -v /vendor/)
 }
 

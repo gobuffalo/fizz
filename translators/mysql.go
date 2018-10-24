@@ -40,7 +40,6 @@ func (p *MySQL) CreateTable(t fizz.Table) (string, error) {
 	}
 
 	s := fmt.Sprintf("CREATE TABLE %s (\n%s\n) ENGINE=InnoDB;", p.escapeIdentifier(t.Name), strings.Join(cols, ",\n"))
-
 	sql = append(sql, s)
 
 	for _, i := range t.Indexes {
@@ -230,8 +229,14 @@ func (p *MySQL) colType(c fizz.Column) string {
 		return "char(36)"
 	case "timestamp", "time", "datetime":
 		return "DATETIME"
-	case "blob":
+	case "blob", "[]byte":
 		return "BLOB"
+	case "int", "integer":
+		return "INTEGER"
+	case "float", "decimal":
+		return "FLOAT"
+	case "json":
+		return "JSON"
 	default:
 		return c.ColType
 	}
