@@ -1,6 +1,7 @@
 module github.com/gobuffalo/fizz
 
 require (
+	github.com/blang/semver v3.5.1+incompatible
 	github.com/fatih/structs v1.0.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.0
 	github.com/gobuffalo/envy v1.6.4
