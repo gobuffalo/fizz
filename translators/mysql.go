@@ -5,9 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/gobuffalo/fizz"
+	"github.com/pkg/errors"
 )
 
 // MySQL is a MySQL-specific translator.
@@ -159,7 +158,7 @@ func (p *MySQL) RenameIndex(t fizz.Table) (string, error) {
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
-	if !strings.HasPrefix(version, "5.7") {
+	if version.LT(mysql57Version) {
 		return "", errors.New("renaming indexes on MySQL versions less than 5.7 is not supported by fizz; use raw SQL instead")
 	}
 	ix := t.Indexes
