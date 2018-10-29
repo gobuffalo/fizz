@@ -1,11 +1,11 @@
 package translators
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/jmoiron/sqlx"
 )
 
 type sqliteIndexListInfo struct {
@@ -53,27 +53,29 @@ type sqliteSchema struct {
 
 func (p *sqliteSchema) Build() error {
 	var err error
-	p.db, err = sqlx.Open("sqlite3", p.URL)
+	db, err := sql.Open("sqlite3", p.URL)
 	if err != nil {
 		return err
 	}
-	defer p.db.Close()
+	defer db.Close()
 
-	res, err := p.db.Queryx("SELECT name FROM sqlite_master WHERE type='table';")
+	res, err := db.Query("SELECT name FROM sqlite_master WHERE type='table';")
 	if err != nil {
 		return err
 	}
+	defer res.Close()
+
 	for res.Next() {
 		table := &fizz.Table{
 			Columns: []fizz.Column{},
 			Indexes: []fizz.Index{},
 		}
-		err = res.StructScan(table)
+		err = res.Scan(table.Name)
 		if err != nil {
 			return err
 		}
 		if table.Name != "sqlite_sequence" {
-			err = p.buildTableData(table)
+			err = p.buildTableData(table, db)
 			if err != nil {
 				return err
 			}
@@ -83,23 +85,24 @@ func (p *sqliteSchema) Build() error {
 	return nil
 }
 
-func (p *sqliteSchema) buildTableData(table *fizz.Table) error {
-	prag := fmt.Sprintf("PRAGMA table_info(%s)", table.Name)
+func (p *sqliteSchema) buildTableData(table *fizz.Table, db *sql.DB) error {
+	prag := fmt.Sprintf(`SELECT "cid", "name", "type", "notnull", "dflt_value", "pk" FROM pragma_table_info('%s')`, table.Name)
 
-	res, err := p.db.Queryx(prag)
+	res, err := db.Query(prag)
 	if err != nil {
-		return nil
+		return err
 	}
+	defer res.Close()
 
 	for res.Next() {
 		ti := sqliteTableInfo{}
-		err = res.StructScan(&ti)
+		err = res.Scan(&ti.CID, &ti.Name, &ti.Type, &ti.NotNull, &ti.Default, &ti.PK)
 		if err != nil {
 			return err
 		}
 		table.Columns = append(table.Columns, ti.ToColumn())
 	}
-	err = p.buildTableIndexes(table)
+	err = p.buildTableIndexes(table, db)
 	if err != nil {
 		return err
 	}
@@ -107,16 +110,17 @@ func (p *sqliteSchema) buildTableData(table *fizz.Table) error {
 	return nil
 }
 
-func (p *sqliteSchema) buildTableIndexes(t *fizz.Table) error {
-	prag := fmt.Sprintf("PRAGMA index_list(%s)", t.Name)
-	res, err := p.db.Queryx(prag)
+func (p *sqliteSchema) buildTableIndexes(t *fizz.Table, db *sql.DB) error {
+	prag := fmt.Sprintf(`SELECT "seq", "name", "unique", "origin", "partial" FROM pragma_index_list(%s)`, t.Name)
+	res, err := db.Query(prag)
 	if err != nil {
 		return err
 	}
+	defer res.Close()
 
 	for res.Next() {
 		li := sqliteIndexListInfo{}
-		err = res.StructScan(&li)
+		err = res.Scan(&li.Seq, &li.Name, &li.Unique, &li.Origin, &li.Partial)
 		if err != nil {
 			return err
 		}
@@ -127,15 +131,16 @@ func (p *sqliteSchema) buildTableIndexes(t *fizz.Table) error {
 			Columns: []string{},
 		}
 
-		prag = fmt.Sprintf("PRAGMA index_info(%s)", i.Name)
-		iires, err := p.db.Queryx(prag)
+		prag = fmt.Sprintf(`SELECT "seqno", "cid", "name" FROM pragma_index_info('%s');`, i.Name)
+		iires, err := db.Query(prag)
 		if err != nil {
 			return err
 		}
+		defer iires.Close()
 
 		for iires.Next() {
 			ii := sqliteIndexInfo{}
-			err = iires.StructScan(&ii)
+			err = iires.Scan(&ii.Seq, &ii.CID, &ii.Name)
 			if err != nil {
 				return err
 			}
