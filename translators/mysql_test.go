@@ -42,14 +42,18 @@ CREATE UNIQUE INDEX ` + "`version_idx`" + ` ON ` + "`schema_migrations`" + ` (` 
 func (p *MySQLSuite) Test_MySQL_CreateTable() {
 	r := p.Require()
 	ddl := `CREATE TABLE ` + "`users`" + ` (
-` + "`id`" + ` integer NOT NULL AUTO_INCREMENT,
+` + "`id`" + ` INTEGER NOT NULL AUTO_INCREMENT,
 PRIMARY KEY(` + "`id`" + `),
 ` + "`first_name`" + ` VARCHAR (255) NOT NULL,
 ` + "`last_name`" + ` VARCHAR (255) NOT NULL,
 ` + "`email`" + ` VARCHAR (20) NOT NULL,
 ` + "`permissions`" + ` text,
-` + "`age`" + ` integer DEFAULT 40,
+` + "`age`" + ` INTEGER DEFAULT 40,
 ` + "`raw`" + ` BLOB NOT NULL,
+` + "`json`" + ` JSON NOT NULL,
+` + "`float`" + ` FLOAT NOT NULL,
+` + "`integer`" + ` INTEGER NOT NULL,
+` + "`bytes`" + ` BLOB NOT NULL,
 ` + "`created_at`" + ` DATETIME NOT NULL,
 ` + "`updated_at`" + ` DATETIME NOT NULL
 ) ENGINE=InnoDB;`
@@ -63,6 +67,10 @@ PRIMARY KEY(` + "`id`" + `),
 		t.Column("permissions", "text", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("raw", "blob", {})
+		t.Column("json", "json", {})
+		t.Column("float", "float", {})
+		t.Column("integer", "integer", {})
+		t.Column("bytes", "[]byte", {})
 	}
 	`, myt)
 	r.NoError(err)
@@ -76,7 +84,7 @@ func (p *MySQLSuite) Test_MySQL_CreateTable_UUID() {
 ` + "`last_name`" + ` VARCHAR (255) NOT NULL,
 ` + "`email`" + ` VARCHAR (20) NOT NULL,
 ` + "`permissions`" + ` text,
-` + "`age`" + ` integer DEFAULT 40,
+` + "`age`" + ` INTEGER DEFAULT 40,
 ` + "`company_id`" + ` char(36) NOT NULL DEFAULT 'test',
 ` + "`uuid`" + ` char(36) NOT NULL,
 PRIMARY KEY(` + "`uuid`" + `),
@@ -102,16 +110,16 @@ PRIMARY KEY(` + "`uuid`" + `),
 func (p *MySQLSuite) Test_MySQL_CreateTables_WithForeignKeys() {
 	r := p.Require()
 	ddl := `CREATE TABLE ` + "`users`" + ` (
-` + "`id`" + ` INT NOT NULL AUTO_INCREMENT,
+` + "`id`" + ` INTEGER NOT NULL AUTO_INCREMENT,
 PRIMARY KEY(` + "`id`" + `),
 ` + "`email`" + ` VARCHAR (20) NOT NULL,
 ` + "`created_at`" + ` DATETIME NOT NULL,
 ` + "`updated_at`" + ` DATETIME NOT NULL
 ) ENGINE=InnoDB;
 CREATE TABLE ` + "`profiles`" + ` (
-` + "`id`" + ` INT NOT NULL AUTO_INCREMENT,
+` + "`id`" + ` INTEGER NOT NULL AUTO_INCREMENT,
 PRIMARY KEY(` + "`id`" + `),
-` + "`user_id`" + ` INT NOT NULL,
+` + "`user_id`" + ` INTEGER NOT NULL,
 ` + "`first_name`" + ` VARCHAR (255) NOT NULL,
 ` + "`last_name`" + ` VARCHAR (255) NOT NULL,
 ` + "`created_at`" + ` DATETIME NOT NULL,
