@@ -37,7 +37,7 @@ func TestSpecificSuites(t *testing.T) {
 		suite.Run(t, &PostgreSQLSuite{})
 	case "cockroach":
 		suite.Run(t, &CockroachSuite{})
-	case "mysql":
+	case "mysql", "mysql_travis":
 		suite.Run(t, &MySQLSuite{})
 	case "sqlserver":
 		suite.Run(t, &MsSqlServerSQLSuite{})

@@ -57,6 +57,7 @@ func (p *mysqlSchema) Version() (*semver.Version, error) {
 	if err != nil {
 		return version, errors.WithMessage(err, "could not fetch MySQL version")
 	}
+	defer res.Close()
 
 	for res.Next() {
 		err = res.Scan(&version)
@@ -77,6 +78,7 @@ func (p *mysqlSchema) Build() error {
 	if err != nil {
 		return err
 	}
+	defer res.Close()
 	for res.Next() {
 		table := &fizz.Table{
 			Columns: []fizz.Column{},
