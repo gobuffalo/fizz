@@ -1,9 +1,8 @@
 package translators_test
 
 import (
-	"fmt"
+	"fmt" // Load MySQL Go driver
 
-	// Load MySQL Go driver
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/fizz"
@@ -15,7 +14,7 @@ var myt = translators.NewMySQL("", "")
 
 func init() {
 	u := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
-	u = fmt.Sprintf(u, envy.Get("MYSQL_USER", "root"), envy.Get("MYSQL_PASSWORD", ""), envy.Get("MYSQL_HOST", "127.0.0.1"), envy.Get("MYSQL_PORT", "3306"), "pop_test", "utf8_general_ci")
+	u = fmt.Sprintf(u, envy.Get("MYSQL_USER", "root"), envy.Get("MYSQL_PASSWORD", "root"), envy.Get("MYSQL_HOST", "127.0.0.1"), envy.Get("MYSQL_PORT", "3306"), "pop_test", "utf8_general_ci")
 	myt = translators.NewMySQL(u, "pop_test")
 }
 
@@ -280,7 +279,7 @@ func (p *MySQLSuite) Test_MySQL_RenameIndex() {
 
 	ddl := `ALTER TABLE ` + "`users`" + ` RENAME INDEX ` + "`email_idx`" + ` TO ` + "`email_address_idx`" + `;`
 
-	res, err := fizz.AString(`rename_index("users", "email_idx", "email_address_ix")`, myt)
+	res, err := fizz.AString(`rename_index("users", "email_idx", "email_address_idx")`, myt)
 	r.NoError(err)
 	r.Equal(ddl, res)
 }
