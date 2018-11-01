@@ -1,8 +1,9 @@
 package translators_test
 
 import (
-	"fmt" // Load MySQL Go driver
+	"fmt"
 
+	// Load MySQL Go driver
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/fizz"
