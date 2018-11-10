@@ -37,4 +37,5 @@ function test {
 test "postgres"
 test "cockroach"
 test "mysql"
+test "sqlserver"
 test "sqlite"

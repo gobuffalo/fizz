@@ -19,6 +19,10 @@ type MySQLSuite struct {
 	suite.Suite
 }
 
+type MsSqlServerSQLSuite struct {
+	suite.Suite
+}
+
 type SQLiteSuite struct {
 	suite.Suite
 }
@@ -35,6 +39,8 @@ func TestSpecificSuites(t *testing.T) {
 		suite.Run(t, &CockroachSuite{})
 	case "mysql", "mysql_travis":
 		suite.Run(t, &MySQLSuite{})
+	case "sqlserver":
+		suite.Run(t, &MsSqlServerSQLSuite{})
 	case "sqlite":
 		suite.Run(t, &SQLiteSuite{})
 	}
