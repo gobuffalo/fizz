@@ -123,7 +123,7 @@ func (p *MySQL) RenameColumn(t fizz.Table) (string, error) {
 		}
 	}
 	col := p.buildColumn(c)
-	col = strings.Replace(col, oc.Name, fmt.Sprintf("%s %s", oc.Name, nc.Name), -1)
+	col = strings.Replace(col, oc.Name, fmt.Sprintf("%s` `%s", oc.Name, nc.Name), -1)
 	s := fmt.Sprintf("ALTER TABLE %s CHANGE %s;", p.escapeIdentifier(t.Name), col)
 	return s, nil
 }
