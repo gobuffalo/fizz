@@ -83,7 +83,7 @@ func (p *mysqlSchema) Build() error {
 			Columns: []fizz.Column{},
 			Indexes: []fizz.Index{},
 		}
-		err = res.Scan(table.Name)
+		err = res.Scan(&table.Name)
 		if err != nil {
 			return errors.WithMessage(err, "unable to retrieve schema")
 		}
