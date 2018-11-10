@@ -11,7 +11,6 @@ require (
 	github.com/gobuffalo/uuid v2.0.5+incompatible // indirect
 	github.com/gobuffalo/validate v2.0.3+incompatible // indirect
 	github.com/gofrs/uuid v3.1.0+incompatible // indirect
-	github.com/jmoiron/sqlx v1.2.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/markbates/inflect v1.0.4 // indirect
 	github.com/onsi/gomega v1.4.2 // indirect

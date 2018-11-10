@@ -1,10 +1,10 @@
 package translators
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/jmoiron/sqlx"
 )
 
 type cockroachIndexListInfo struct {
@@ -47,13 +47,13 @@ type cockroachSchema struct {
 
 func (p *cockroachSchema) Build() error {
 	var err error
-	p.db, err = sqlx.Open("postgres", p.URL)
+	db, err := sql.Open("postgres", p.URL)
 	if err != nil {
 		return err
 	}
-	defer p.db.Close()
+	defer db.Close()
 
-	res, err := p.db.Queryx("SELECT table_name as name FROM information_schema.tables;")
+	res, err := db.Query("SELECT table_name as name FROM information_schema.tables;")
 	if err != nil {
 		return err
 	}
@@ -62,12 +62,12 @@ func (p *cockroachSchema) Build() error {
 			Columns: []fizz.Column{},
 			Indexes: []fizz.Index{},
 		}
-		err = res.StructScan(table)
+		err = res.Scan(&table.Name)
 		if err != nil {
 			return err
 		}
 		if table.Name != "cockroach_sequence" {
-			err = p.buildTableData(table)
+			err = p.buildTableData(table, db)
 			if err != nil {
 				return err
 			}
@@ -77,23 +77,39 @@ func (p *cockroachSchema) Build() error {
 	return nil
 }
 
-func (p *cockroachSchema) buildTableData(table *fizz.Table) error {
-	prag := fmt.Sprintf("SELECT c.column_name, c.data_type, (c.is_nullable = 'NO') as \"not_null\", c.column_default, (tc.table_schema IS NOT NULL)::bool AS \"pk\" FROM information_schema.columns AS c LEFT JOIN information_schema.key_column_usage as kcu ON ((c.table_schema = kcu.table_schema) AND (c.table_name = kcu.table_name) AND (c.column_name = kcu.column_name)) LEFT JOIN information_schema.table_constraints AS tc ON ((tc.table_schema = kcu.table_schema) AND (tc.table_name = kcu.table_name) AND (tc.constraint_name = kcu.constraint_name)) AND (tc.constraint_name = 'primary') WHERE c.table_name = '%s';", table.Name)
+func (p *cockroachSchema) buildTableData(table *fizz.Table, db *sql.DB) error {
+	prag := fmt.Sprintf(`SELECT c.column_name, 
+	c.data_type, 
+	(c.is_nullable = 'NO') as "not_null",
+	c.column_default,
+	(tc.table_schema IS NOT NULL)::bool AS "pk"
+	FROM information_schema.columns AS c
+	LEFT JOIN information_schema.key_column_usage as kcu
+		ON ((c.table_schema = kcu.table_schema)
+		AND (c.table_name = kcu.table_name)
+		AND (c.column_name = kcu.column_name))
+	LEFT JOIN information_schema.table_constraints AS tc
+		ON ((tc.table_schema = kcu.table_schema)
+		AND (tc.table_name = kcu.table_name)
+		AND (tc.constraint_name = kcu.constraint_name))
+		AND (tc.constraint_name = 'primary')
+	WHERE c.table_name = '%s';`, table.Name)
 
-	res, err := p.db.Queryx(prag)
+	res, err := db.Query(prag)
 	if err != nil {
-		return nil
+		return err
 	}
+	defer res.Close()
 
 	for res.Next() {
 		ti := cockroachTableInfo{}
-		err = res.StructScan(&ti)
+		err = res.Scan(&ti.Name, &ti.Type, &ti.NotNull, &ti.Default, &ti.PK)
 		if err != nil {
 			return err
 		}
 		table.Columns = append(table.Columns, ti.ToColumn())
 	}
-	err = p.buildTableIndexes(table)
+	err = p.buildTableIndexes(table, db)
 	if err != nil {
 		return err
 	}
@@ -101,16 +117,17 @@ func (p *cockroachSchema) buildTableData(table *fizz.Table) error {
 	return nil
 }
 
-func (p *cockroachSchema) buildTableIndexes(t *fizz.Table) error {
+func (p *cockroachSchema) buildTableIndexes(t *fizz.Table, db *sql.DB) error {
 	prag := fmt.Sprintf("SELECT distinct index_name as name, non_unique FROM information_schema.statistics where table_name = '%s';", t.Name)
-	res, err := p.db.Queryx(prag)
+	res, err := db.Query(prag)
 	if err != nil {
 		return err
 	}
+	defer res.Close()
 
 	for res.Next() {
 		li := cockroachIndexListInfo{}
-		err = res.StructScan(&li)
+		err = res.Scan(&li.Name, &li.NonUnique)
 		if err != nil {
 			return err
 		}
@@ -122,14 +139,14 @@ func (p *cockroachSchema) buildTableIndexes(t *fizz.Table) error {
 		}
 
 		prag = fmt.Sprintf("SELECT column_name as name, direction FROM information_schema.statistics where index_name = '%s';", i.Name)
-		iires, err := p.db.Queryx(prag)
+		iires, err := db.Query(prag)
 		if err != nil {
 			return err
 		}
 
 		for iires.Next() {
 			ii := cockroachIndexInfo{}
-			err = iires.StructScan(&ii)
+			err = iires.Scan(&ii.Name, &ii.Direction)
 			if err != nil {
 				return err
 			}
