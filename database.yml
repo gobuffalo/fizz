@@ -27,6 +27,14 @@ cockroach:
   user: {{ envOr "COCKROACH_USER" "root"  }}
   password: {{ envOr "COCKROACH_PASSWORD" ""  }}
 
+sqlserver:
+  dialect: "sqlserver"
+  database: "pop_test"
+  host: {{ envOr "MSSQLSERVER_HOST" "127.0.0.1"  }}
+  port: {{ envOr "MSSQLSERVER_PORT" "1433"  }}
+  user: {{ envOr "MSSQLSERVER_USER" "sa"  }}
+  password: {{ envOr "MSSQLSERVER_PASSWORD" "Tt@12345678"  }}
+
 sqlite:
   dialect: "sqlite3"
   database: "./sql_scripts/sqlite/test.sqlite"
