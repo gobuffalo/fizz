@@ -111,7 +111,7 @@ func (p *sqliteSchema) buildTableData(table *fizz.Table, db *sql.DB) error {
 }
 
 func (p *sqliteSchema) buildTableIndexes(t *fizz.Table, db *sql.DB) error {
-	prag := fmt.Sprintf(`SELECT "seq", "name", "unique", "origin", "partial" FROM pragma_index_list(%s)`, t.Name)
+	prag := fmt.Sprintf(`SELECT "seq", "name", "unique", "origin", "partial" FROM pragma_index_list('%s')`, t.Name)
 	res, err := db.Query(prag)
 	if err != nil {
 		return err
