@@ -1,11 +1,12 @@
 # Fizz
 
-## A Common DSL for Migrating Databases
+A Common DSL for Migrating Databases
 
 ## Create a Table
 
 ``` javascript
 create_table("users") {
+  t.Column("id", "integer", {primary: true})
   t.Column("email", "string", {})
   t.Column("twitter_handle", "string", {"size": 50})
   t.Column("age", "integer", {"default": 0})
@@ -23,7 +24,7 @@ create_table("todos") {
 }
 ```
 
-The `create_table` function will generate an `id` column of type `integer` that will auto-increment. This can be changed to use the [`UUID`](https://github.com/gobuffalo/uuid) type:
+The `id` column don't have to be an integer. For instance, your can use an [`UUID`](https://github.com/gobuffalo/uuid) type instead:
 
 ```javascript
 create_table("users") {
@@ -32,7 +33,7 @@ create_table("users") {
 }
 ```
 
-It will also generate two `timestamp` columns; `created_at` and `updated_at`.
+By default, fizz will generate two `timestamp` columns: `created_at` and `updated_at`.
 
 The `t.Columns` method takes the following arguments: name of the column, the type of the field, and finally the last argument is any options you want to set on that column.
 
