@@ -233,6 +233,15 @@ func (p *MySQL) colType(c fizz.Column) string {
 	case "int", "integer":
 		return "INTEGER"
 	case "float", "decimal":
+		if c.Options["precision"] != nil {
+			precision := c.Options["precision"]
+			if c.Options["scale"] != nil {
+				scale := c.Options["scale"]
+				return fmt.Sprintf("FLOAT(%d,%d)", precision, scale)
+			}
+			return fmt.Sprintf("FLOAT(%d)", precision)
+		}
+
 		return "FLOAT"
 	case "json":
 		return "JSON"

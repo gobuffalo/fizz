@@ -56,14 +56,14 @@ func (p *MsSqlServer) DropTable(t fizz.Table) (string, error) {
 
 func (p *MsSqlServer) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
-		return "", errors.New("Not enough table names supplied!")
+		return "", errors.New("Not enough table names supplied")
 	}
 	return fmt.Sprintf("EXEC sp_rename '%s', '%s';", t[0].Name, t[1].Name), nil
 }
 
 func (p *MsSqlServer) ChangeColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("Not enough columns supplied")
 	}
 	c := t.Columns[0]
 
@@ -95,7 +95,7 @@ func (p *MsSqlServer) ChangeColumn(t fizz.Table) (string, error) {
 
 func (p *MsSqlServer) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 	//if _, ok := t.Columns[0].Options["first"]; ok {
 	//	return "", fmt.Errorf("T-SQL does not support adding column at a specific position.")
@@ -112,7 +112,7 @@ func (p *MsSqlServer) AddColumn(t fizz.Table) (string, error) {
 
 func (p *MsSqlServer) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	return fmt.Sprintf("ALTER TABLE %s DROP COLUMN %s;", t.Name, c.Name), nil
@@ -120,7 +120,7 @@ func (p *MsSqlServer) DropColumn(t fizz.Table) (string, error) {
 
 func (p *MsSqlServer) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
-		return "", errors.New("Not enough columns supplied!")
+		return "", errors.New("not enough columns supplied")
 	}
 	oc := t.Columns[0]
 	nc := t.Columns[1]
@@ -130,7 +130,7 @@ func (p *MsSqlServer) RenameColumn(t fizz.Table) (string, error) {
 
 func (p *MsSqlServer) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", errors.New("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("CREATE INDEX %s ON %s (%s);", i.Name, t.Name, strings.Join(i.Columns, ", "))
@@ -142,7 +142,7 @@ func (p *MsSqlServer) AddIndex(t fizz.Table) (string, error) {
 
 func (p *MsSqlServer) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", errors.New("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	return fmt.Sprintf("DROP INDEX %s ON %s;", i.Name, t.Name), nil
@@ -151,7 +151,7 @@ func (p *MsSqlServer) DropIndex(t fizz.Table) (string, error) {
 func (p *MsSqlServer) RenameIndex(t fizz.Table) (string, error) {
 	ix := t.Indexes
 	if len(ix) < 2 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", errors.New("not enough indexes supplied")
 	}
 	oi := ix[0]
 	ni := ix[1]
@@ -160,7 +160,7 @@ func (p *MsSqlServer) RenameIndex(t fizz.Table) (string, error) {
 
 func (p *MsSqlServer) AddForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("Not enough foreign keys supplied!")
+		return "", errors.New("not enough foreign keys supplied")
 	}
 
 	return p.buildForeignKey(t, t.ForeignKeys[0]), nil
@@ -168,7 +168,7 @@ func (p *MsSqlServer) AddForeignKey(t fizz.Table) (string, error) {
 
 func (p *MsSqlServer) DropForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("Not enough foreign keys supplied!")
+		return "", errors.New("not enough foreign keys supplied")
 	}
 
 	fk := t.ForeignKeys[0]
@@ -215,6 +215,17 @@ func (p *MsSqlServer) colType(c fizz.Column) string {
 		return "uniqueidentifier"
 	case "blob":
 		return "VARBINARY(MAX)"
+	case "float", "decimal":
+		if c.Options["precision"] != nil {
+			precision := c.Options["precision"]
+			if c.Options["scale"] != nil {
+				scale := c.Options["scale"]
+				return fmt.Sprintf("DECIMAL(%d,%d)", precision, scale)
+			}
+			return fmt.Sprintf("DECIMAL(%d)", precision)
+		}
+
+		return "DECIMAL"
 	case "timestamp":
 		return "DATETIME"
 	case "boolean":

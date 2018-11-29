@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/gobuffalo/fizz"
+	"github.com/pkg/errors"
 )
 
 type Postgres struct {
@@ -212,8 +211,17 @@ func (p *Postgres) colType(c fizz.Column) string {
 		return "timestamp"
 	case "blob", "[]byte":
 		return "bytea"
-	case "float":
-		return "decimal"
+	case "float", "decimal":
+		if c.Options["precision"] != nil {
+			precision := c.Options["precision"]
+			if c.Options["scale"] != nil {
+				scale := c.Options["scale"]
+				return fmt.Sprintf("DECIMAL(%d,%d)", precision, scale)
+			}
+			return fmt.Sprintf("DECIMAL(%d)", precision)
+		}
+
+		return "DECIMAL"
 	case "[]string":
 		return "varchar[]"
 	case "[]float":
