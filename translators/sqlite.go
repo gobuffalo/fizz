@@ -388,6 +388,7 @@ func (p *SQLite) colType(c fizz.Column) string {
 	case "int", "integer":
 		return "INTEGER"
 	case "float":
+		// precision and scale not supported here
 		return "REAL"
 	case "json":
 		return "TEXT"

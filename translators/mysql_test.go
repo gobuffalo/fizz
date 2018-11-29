@@ -1,9 +1,8 @@
 package translators_test
 
 import (
-	"fmt"
+	"fmt" // Load MySQL Go driver
 
-	// Load MySQL Go driver
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/fizz"
@@ -51,7 +50,7 @@ PRIMARY KEY(` + "`id`" + `),
 ` + "`age`" + ` INTEGER DEFAULT 40,
 ` + "`raw`" + ` BLOB NOT NULL,
 ` + "`json`" + ` JSON NOT NULL,
-` + "`float`" + ` FLOAT NOT NULL,
+` + "`float`" + ` FLOAT(5) NOT NULL,
 ` + "`integer`" + ` INTEGER NOT NULL,
 ` + "`bytes`" + ` BLOB NOT NULL,
 ` + "`created_at`" + ` DATETIME NOT NULL,
@@ -68,7 +67,7 @@ PRIMARY KEY(` + "`id`" + `),
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("raw", "blob", {})
 		t.Column("json", "json", {})
-		t.Column("float", "float", {})
+		t.Column("float", "float", {"precision": 5})
 		t.Column("integer", "integer", {})
 		t.Column("bytes", "[]byte", {})
 	}

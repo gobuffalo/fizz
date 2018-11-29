@@ -376,6 +376,17 @@ func (p *Cockroach) colType(c fizz.Column) string {
 		return "timestamp"
 	case "blob":
 		return "BYTES"
+	case "float", "decimal":
+		if c.Options["precision"] != nil {
+			precision := c.Options["precision"]
+			if c.Options["scale"] != nil {
+				scale := c.Options["scale"]
+				return fmt.Sprintf("DECIMAL(%d,%d)", precision, scale)
+			}
+			return fmt.Sprintf("DECIMAL(%d)", precision)
+		}
+
+		return "DECIMAL"
 	default:
 		return c.ColType
 	}

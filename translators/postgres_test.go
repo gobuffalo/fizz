@@ -48,13 +48,14 @@ func (p *PostgreSQLSuite) Test_Postgres_CreateTable_UUID() {
 "permissions" jsonb,
 "age" integer DEFAULT '40',
 "integer" integer NOT NULL,
-"float" decimal NOT NULL,
+"float" DECIMAL NOT NULL,
 "bytes" bytea NOT NULL,
 "strings" varchar[] NOT NULL,
 "floats" decimal[] NOT NULL,
 "ints" integer[] NOT NULL,
 "jason" jsonb NOT NULL,
-"mydecimal" decimal NOT NULL,
+"mydecimal" DECIMAL NOT NULL,
+"mydecimal2" DECIMAL(5,2) NOT NULL,
 "uuid" UUID NOT NULL,
 PRIMARY KEY("uuid"),
 "created_at" timestamp NOT NULL,
@@ -76,6 +77,7 @@ PRIMARY KEY("uuid"),
 		t.Column("ints", "[]int", {})
 		t.Column("jason", "json", {})
 		t.Column("mydecimal", "decimal", {})
+		t.Column("mydecimal2", "decimal", {"precision": 5, "scale": 2})
 		t.Column("uuid", "uuid", {"primary": true})
 	}
 	`, pgt)
