@@ -7,10 +7,10 @@ import (
 
 func (s *SchemaSuite) buildSchema() translators.Schema {
 	schema := map[string]*fizz.Table{}
-	ta := &fizz.Table{Name: "testTable"}
+	ta := fizz.NewTable("testTable", nil)
 	ta.Column("testColumn", "type", nil)
 	ta.Indexes = append(ta.Indexes, fizz.Index{Name: "testIndex"})
-	schema["testTable"] = ta
+	schema["testTable"] = &ta
 	return translators.CreateSchema("name", "url", schema)
 }
 
