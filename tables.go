@@ -48,10 +48,15 @@ func (t *Table) Column(name string, colType string, options Options) error {
 	if _, found := t.columnsCache[name]; found {
 		return fmt.Errorf("duplicated column %s", name)
 	}
+	var primary bool
+	if _, ok := options["primary"]; ok {
+		primary = true
+	}
 	c := Column{
 		Name:    name,
 		ColType: colType,
 		Options: options,
+		Primary: primary,
 	}
 	t.columnsCache[name] = struct{}{}
 	t.Columns = append(t.Columns, c)
