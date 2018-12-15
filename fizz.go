@@ -9,10 +9,11 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/kballard/go-shellquote"
+	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 )
 
+// Options is a generic map of options.
 type Options map[string]interface{}
 
 type fizzer struct {
