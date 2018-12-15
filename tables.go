@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Table is the table definition for fizz.
 type Table struct {
 	Name        string `db:"name"`
 	Columns     []Column
@@ -18,6 +19,11 @@ type Table struct {
 }
 
 func (t Table) String() string {
+	return t.Fizz()
+}
+
+// Fizz returns the fizz DDL to create the table.
+func (t Table) Fizz() string {
 	var buff bytes.Buffer
 
 	buff.WriteString(fmt.Sprintf("create_table(\"%s\") {\n", t.Name))
@@ -26,6 +32,11 @@ func (t Table) String() string {
 	}
 	buff.WriteString("}")
 	return buff.String()
+}
+
+// UnFizz returns the fizz DDL to remove the table.
+func (t Table) UnFizz() string {
+	return fmt.Sprintf("drop_table(\"%s\")", t.Name)
 }
 
 func (t *Table) DisableTimestamps() {
