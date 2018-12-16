@@ -20,52 +20,58 @@ func Test_Table_Stringer(t *testing.T) {
 	t.Column("email", "string", {default: "foo@example.com", size: 50})
 }`
 
-	table := fizz.Table{
-		Name: "users",
-		Columns: []fizz.Column{
-			fizz.Column{
-				Name:    "name",
-				ColType: "string",
-			},
-			fizz.Column{
-				Name:    "alive",
-				ColType: "boolean",
-				Options: map[string]interface{}{
-					"null": true,
-				},
-			},
-			fizz.Column{
-				Name:    "birth_date",
-				ColType: "timestamp",
-				Options: map[string]interface{}{
-					"null": true,
-				},
-			},
-			fizz.Column{
-				Name:    "bio",
-				ColType: "text",
-				Options: map[string]interface{}{
-					"null": true,
-				},
-			},
-			fizz.Column{
-				Name:    "price",
-				ColType: "numeric",
-				Options: map[string]interface{}{
-					"null":    true,
-					"default": "1.00",
-				},
-			},
-			fizz.Column{
-				Name:    "email",
-				ColType: "string",
-				Options: map[string]interface{}{
-					"size":    50,
-					"default": "foo@example.com",
-				},
-			},
-		},
-	}
+	table := fizz.NewTable("users", map[string]interface{}{})
+	r.NoError(table.Column("name", "string", nil))
+	r.NoError(table.Column("alive", "boolean", fizz.Options{
+		"null": true,
+	}))
+	r.NoError(table.Column("birth_date", "timestamp", fizz.Options{
+		"null": true,
+	}))
+	r.NoError(table.Column("bio", "text", fizz.Options{
+		"null": true,
+	}))
+	r.NoError(table.Column("price", "numeric", fizz.Options{
+		"null":    true,
+		"default": "1.00",
+	}))
+	r.NoError(table.Column("email", "string", fizz.Options{
+		"size":    50,
+		"default": "foo@example.com",
+	}))
 
 	r.Equal(expected, table.String())
+}
+
+func Test_Table_UnFizz(t *testing.T) {
+	r := require.New(t)
+	table := fizz.NewTable("users", nil)
+	r.Equal(`drop_table("users")`, table.UnFizz())
+}
+
+func Test_Table_HasColumn(t *testing.T) {
+	r := require.New(t)
+	table := fizz.NewTable("users", nil)
+	table.Column("firstname", "string", nil)
+	table.Column("lastname", "string", nil)
+	r.True(table.HasColumns("firstname", "lastname"))
+	r.False(table.HasColumns("age"))
+}
+
+func Test_Table_ColumnNames(t *testing.T) {
+	r := require.New(t)
+	table := fizz.NewTable("users", nil)
+	table.Column("firstname", "string", nil)
+	table.Column("lastname", "string", nil)
+	r.Equal([]string{"firstname", "lastname"}, table.ColumnNames())
+}
+
+func Test_Table_DuplicateColumn(t *testing.T) {
+	r := require.New(t)
+	table := fizz.NewTable("users", map[string]interface{}{})
+	r.NoError(table.Column("name", "string", fizz.Options{}))
+	r.Error(table.Column("name", "string", fizz.Options{}))
+	r.Error(table.Column("name", "string", fizz.Options{
+		"null": true,
+	}))
 }

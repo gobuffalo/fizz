@@ -11,11 +11,12 @@ import (
 
 // Table is the table definition for fizz.
 type Table struct {
-	Name        string `db:"name"`
-	Columns     []Column
-	Indexes     []Index
-	ForeignKeys []ForeignKey
-	Options     map[string]interface{}
+	Name         string `db:"name"`
+	Columns      []Column
+	Indexes      []Index
+	ForeignKeys  []ForeignKey
+	Options      map[string]interface{}
+	columnsCache map[string]struct{}
 }
 
 func (t Table) String() string {
@@ -25,7 +26,6 @@ func (t Table) String() string {
 // Fizz returns the fizz DDL to create the table.
 func (t Table) Fizz() string {
 	var buff bytes.Buffer
-
 	buff.WriteString(fmt.Sprintf("create_table(\"%s\") {\n", t.Name))
 	for _, c := range t.Columns {
 		buff.WriteString(fmt.Sprintf("\t%s\n", c.String()))
@@ -43,7 +43,11 @@ func (t *Table) DisableTimestamps() {
 	t.Options["timestamps"] = false
 }
 
-func (t *Table) Column(name string, colType string, options Options) {
+// Column adds a column to the table definition.
+func (t *Table) Column(name string, colType string, options Options) error {
+	if _, found := t.columnsCache[name]; found {
+		return fmt.Errorf("duplicated column %s", name)
+	}
 	var primary bool
 	if _, ok := options["primary"]; ok {
 		primary = true
@@ -54,9 +58,12 @@ func (t *Table) Column(name string, colType string, options Options) {
 		Options: options,
 		Primary: primary,
 	}
+	t.columnsCache[name] = struct{}{}
 	t.Columns = append(t.Columns, c)
+	return nil
 }
 
+// ForeignKey adds a new foreign key to the table definition.
 func (t *Table) ForeignKey(column string, refs interface{}, options Options) error {
 	fkr, err := parseForeignKeyRef(refs)
 	if err != nil {
@@ -78,20 +85,20 @@ func (t *Table) ForeignKey(column string, refs interface{}, options Options) err
 	return nil
 }
 
-func (t *Table) Timestamp(name string) {
-	c := Column{
-		Name:    name,
-		ColType: "timestamp",
-		Options: Options{},
+// Timestamp is a shortcut to add a timestamp column with default options.
+func (t *Table) Timestamp(name string) error {
+	return t.Column(name, "timestamp", Options{})
+}
+
+// Timestamps adds created_at and updated_at columns to the Table definition.
+func (t *Table) Timestamps() error {
+	if err := t.Timestamp("created_at"); err != nil {
+		return err
 	}
-
-	t.Columns = append(t.Columns, c)
+	return t.Timestamp("updated_at")
 }
 
-func (t *Table) Timestamps() {
-	t.Columns = append(t.Columns, []Column{CREATED_COL, UPDATED_COL}...)
-}
-
+// ColumnNames returns the names of the Table's columns.
 func (t *Table) ColumnNames() []string {
 	cols := make([]string, len(t.Columns))
 	for i, c := range t.Columns {
@@ -100,26 +107,28 @@ func (t *Table) ColumnNames() []string {
 	return cols
 }
 
+// HasColumns checks if the Table has all the given columns.
 func (t *Table) HasColumns(args ...string) bool {
-	keys := map[string]struct{}{}
-	for _, k := range t.ColumnNames() {
-		keys[k] = struct{}{}
-	}
 	for _, a := range args {
-		if _, ok := keys[a]; !ok {
+		if _, ok := t.columnsCache[a]; !ok {
 			return false
 		}
 	}
 	return true
 }
 
-func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush.HelperContext) error {
-	t := Table{
-		Name:    name,
-		Columns: []Column{},
-		Options: opts,
+// NewTable creates a new Table.
+func NewTable(name string, opts map[string]interface{}) Table {
+	return Table{
+		Name:         name,
+		Columns:      []Column{},
+		Options:      opts,
+		columnsCache: map[string]struct{}{},
 	}
+}
 
+func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush.HelperContext) error {
+	t := NewTable(name, opts)
 	if help.HasBlock() {
 		ctx := help.Context.New()
 		ctx.Set("t", &t)
@@ -129,7 +138,9 @@ func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush
 	}
 
 	if enabled, exists := t.Options["timestamps"]; !exists || enabled == true {
-		t.Timestamps()
+		if !t.HasColumns("created_at", "updated_at") {
+			t.Timestamps()
+		}
 	}
 
 	f.add(f.Bubbler.CreateTable(t))
