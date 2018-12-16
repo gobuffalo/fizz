@@ -20,7 +20,7 @@ func Test_Table_Stringer(t *testing.T) {
 	t.Column("email", "string", {default: "foo@example.com", size: 50})
 }`
 
-	table := fizz.NewTable("users", map[string]interface{}{})
+	table := fizz.NewTable("users", nil)
 	r.NoError(table.Column("name", "string", nil))
 	r.NoError(table.Column("alive", "boolean", fizz.Options{
 		"null": true,

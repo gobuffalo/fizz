@@ -2,7 +2,9 @@ package fizz
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/gobuffalo/plush"
@@ -26,7 +28,17 @@ func (t Table) String() string {
 // Fizz returns the fizz DDL to create the table.
 func (t Table) Fizz() string {
 	var buff bytes.Buffer
-	buff.WriteString(fmt.Sprintf("create_table(\"%s\") {\n", t.Name))
+	if t.Options != nil {
+		o := make([]string, 0, len(t.Options))
+		for k, v := range t.Options {
+			vv, _ := json.Marshal(v)
+			o = append(o, fmt.Sprintf("%s: %s", k, string(vv)))
+		}
+		sort.SliceStable(o, func(i, j int) bool { return o[i] < o[j] })
+		buff.WriteString(fmt.Sprintf("create_table(\"%s\", {%s}) {\n", t.Name, strings.Join(o, ", ")))
+	} else {
+		buff.WriteString(fmt.Sprintf("create_table(\"%s\") {\n", t.Name))
+	}
 	for _, c := range t.Columns {
 		buff.WriteString(fmt.Sprintf("\t%s\n", c.String()))
 	}
@@ -59,7 +71,12 @@ func (t *Table) Column(name string, colType string, options Options) error {
 		Primary: primary,
 	}
 	t.columnsCache[name] = struct{}{}
-	t.Columns = append(t.Columns, c)
+	// Ensure id is first
+	if name == "id" {
+		t.Columns = append([]Column{c}, t.Columns...)
+	} else {
+		t.Columns = append(t.Columns, c)
+	}
 	return nil
 }
 
