@@ -28,19 +28,36 @@ func (t Table) String() string {
 // Fizz returns the fizz DDL to create the table.
 func (t Table) Fizz() string {
 	var buff bytes.Buffer
-	if t.Options != nil {
-		o := make([]string, 0, len(t.Options))
-		for k, v := range t.Options {
-			vv, _ := json.Marshal(v)
-			o = append(o, fmt.Sprintf("%s: %s", k, string(vv)))
+	timestampsOpt := t.Options["timestamps"].(bool)
+	o := make([]string, 0, len(t.Options))
+	for k, v := range t.Options {
+		// Special handling for timestamps option
+		if k == "timestamps" {
+			continue
 		}
+		vv, _ := json.Marshal(v)
+		o = append(o, fmt.Sprintf("%s: %s", k, string(vv)))
+	}
+	if len(o) > 0 {
 		sort.SliceStable(o, func(i, j int) bool { return o[i] < o[j] })
 		buff.WriteString(fmt.Sprintf("create_table(\"%s\", {%s}) {\n", t.Name, strings.Join(o, ", ")))
 	} else {
 		buff.WriteString(fmt.Sprintf("create_table(\"%s\") {\n", t.Name))
 	}
-	for _, c := range t.Columns {
-		buff.WriteString(fmt.Sprintf("\t%s\n", c.String()))
+	if timestampsOpt {
+		for _, c := range t.Columns {
+			if c.Name == "created_at" || c.Name == "updated_at" {
+				continue
+			}
+			buff.WriteString(fmt.Sprintf("\t%s\n", c.String()))
+		}
+	} else {
+		for _, c := range t.Columns {
+			buff.WriteString(fmt.Sprintf("\t%s\n", c.String()))
+		}
+	}
+	if timestampsOpt {
+		buff.WriteString("\tt.Timestamps()\n")
 	}
 	buff.WriteString("}")
 	return buff.String()
@@ -136,6 +153,13 @@ func (t *Table) HasColumns(args ...string) bool {
 
 // NewTable creates a new Table.
 func NewTable(name string, opts map[string]interface{}) Table {
+	if opts == nil {
+		opts = make(map[string]interface{})
+	}
+	// auto-timestamp as default
+	if enabled, exists := opts["timestamps"]; !exists || enabled == true {
+		opts["timestamps"] = true
+	}
 	return Table{
 		Name:         name,
 		Columns:      []Column{},
@@ -154,7 +178,7 @@ func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush
 		}
 	}
 
-	if enabled, exists := t.Options["timestamps"]; !exists || enabled == true {
+	if t.Options["timestamps"].(bool) {
 		if !t.HasColumns("created_at", "updated_at") {
 			t.Timestamps()
 		}
