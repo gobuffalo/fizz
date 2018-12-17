@@ -18,9 +18,10 @@ func Test_Table_Stringer(t *testing.T) {
 	t.Column("bio", "text", {null: true})
 	t.Column("price", "numeric", {default: "1.00", null: true})
 	t.Column("email", "string", {default: "foo@example.com", size: 50})
+	t.Timestamps()
 }`
 
-	table := fizz.NewTable("users", map[string]interface{}{})
+	table := fizz.NewTable("users", nil)
 	r.NoError(table.Column("name", "string", nil))
 	r.NoError(table.Column("alive", "boolean", fizz.Options{
 		"null": true,
@@ -39,6 +40,38 @@ func Test_Table_Stringer(t *testing.T) {
 		"size":    50,
 		"default": "foo@example.com",
 	}))
+
+	r.Equal(expected, table.String())
+}
+
+func Test_Table_StringerOpts(t *testing.T) {
+	r := require.New(t)
+
+	// Timestamps
+	expected :=
+		`create_table("users") {
+	t.Column("name", "string")
+	t.Timestamps()
+}`
+
+	table := fizz.NewTable("users", map[string]interface{}{
+		"timestamps": true,
+	})
+	r.NoError(table.Column("name", "string", nil))
+
+	r.Equal(expected, table.String())
+
+	// Random option
+	expected =
+		`create_table("users", {myopt: "test"}) {
+	t.Column("name", "string")
+	t.Timestamps()
+}`
+
+	table = fizz.NewTable("users", map[string]interface{}{
+		"myopt": "test",
+	})
+	r.NoError(table.Column("name", "string", nil))
 
 	r.Equal(expected, table.String())
 }
