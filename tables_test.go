@@ -146,3 +146,12 @@ func Test_Table_DuplicateColumn(t *testing.T) {
 		"null": true,
 	}))
 }
+
+func Test_Table_AddEmptyIndex(t *testing.T) {
+	r := require.New(t)
+	// Empty index
+	table := fizz.NewTable("users", nil)
+	r.NoError(table.Column("name", "string", nil))
+	r.NoError(table.Column("email", "string", nil))
+	r.Error(table.Index([]string{}, nil))
+}
