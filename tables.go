@@ -29,6 +29,7 @@ func (t Table) String() string {
 func (t Table) Fizz() string {
 	var buff bytes.Buffer
 	timestampsOpt := t.Options["timestamps"].(bool)
+	// Write table options
 	o := make([]string, 0, len(t.Options))
 	for k, v := range t.Options {
 		// Special handling for timestamps option
@@ -44,6 +45,7 @@ func (t Table) Fizz() string {
 	} else {
 		buff.WriteString(fmt.Sprintf("create_table(\"%s\") {\n", t.Name))
 	}
+	// Write columns
 	if timestampsOpt {
 		for _, c := range t.Columns {
 			if c.Name == "created_at" || c.Name == "updated_at" {
@@ -58,6 +60,10 @@ func (t Table) Fizz() string {
 	}
 	if timestampsOpt {
 		buff.WriteString("\tt.Timestamps()\n")
+	}
+	// Write indexes
+	for _, i := range t.Indexes {
+		buff.WriteString(fmt.Sprintf("\t%s\n", i.String()))
 	}
 	buff.WriteString("}")
 	return buff.String()
@@ -119,6 +125,39 @@ func (t *Table) ForeignKey(column string, refs interface{}, options Options) err
 	return nil
 }
 
+// Index adds a new index to the table definition.
+func (t *Table) Index(columns interface{}, options Options) error {
+	i := Index{}
+	switch tp := columns.(type) {
+	default:
+		return errors.Errorf("unexpected type %T for %s index columns", tp, t.Name) // %T prints whatever type t has
+	case string:
+		i.Columns = []string{tp}
+	case []string:
+		if len(tp) == 0 {
+			return errors.Errorf("expected at least one column to apply %s index", t.Name)
+		}
+		i.Columns = tp
+	case []interface{}:
+		if len(tp) == 0 {
+			return errors.Errorf("expected at least one column to apply %s index", t.Name)
+		}
+		cl := make([]string, len(tp))
+		for i, c := range tp {
+			cl[i] = c.(string)
+		}
+		i.Columns = cl
+	}
+	if options["name"] != nil {
+		i.Name = options["name"].(string)
+	} else {
+		i.Name = fmt.Sprintf("%s_%s_idx", t.Name, strings.Join(i.Columns, "_"))
+	}
+	i.Unique = options["unique"] != nil && options["unique"].(bool)
+	t.Indexes = append(t.Indexes, i)
+	return nil
+}
+
 // Timestamp is a shortcut to add a timestamp column with default options.
 func (t *Table) Timestamp(name string) error {
 	return t.Column(name, "timestamp", Options{})
@@ -163,6 +202,7 @@ func NewTable(name string, opts map[string]interface{}) Table {
 	return Table{
 		Name:         name,
 		Columns:      []Column{},
+		Indexes:      []Index{},
 		Options:      opts,
 		columnsCache: map[string]struct{}{},
 	}

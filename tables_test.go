@@ -76,6 +76,44 @@ func Test_Table_StringerOpts(t *testing.T) {
 	r.Equal(expected, table.String())
 }
 
+func Test_Table_StringerIndex(t *testing.T) {
+	r := require.New(t)
+
+	// Single column index
+	expected :=
+		`create_table("users") {
+	t.Column("name", "string")
+	t.Column("email", "string")
+	t.Timestamps()
+	t.Index("email", {name: "users_email_idx", unique: true})
+}`
+
+	table := fizz.NewTable("users", nil)
+	r.NoError(table.Column("name", "string", nil))
+	r.NoError(table.Column("email", "string", nil))
+	r.NoError(table.Index("email", fizz.Options{
+		"unique": true,
+	}))
+
+	r.Equal(expected, table.String())
+
+	// Multiple-column index
+	expected =
+		`create_table("users") {
+	t.Column("name", "string")
+	t.Column("email", "string")
+	t.Timestamps()
+	t.Index(["name", "email"], {name: "users_name_email_idx"})
+}`
+
+	table = fizz.NewTable("users", nil)
+	r.NoError(table.Column("name", "string", nil))
+	r.NoError(table.Column("email", "string", nil))
+	r.NoError(table.Index([]string{"name", "email"}, nil))
+
+	r.Equal(expected, table.String())
+}
+
 func Test_Table_UnFizz(t *testing.T) {
 	r := require.New(t)
 	table := fizz.NewTable("users", nil)
