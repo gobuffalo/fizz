@@ -14,6 +14,7 @@ create_table("users") {
   t.Column("company_id", "uuid", {"default_raw": "uuid_generate_v1()"})
   t.Column("bio", "text", {"null": true})
   t.Column("joined_at", "timestamp", {})
+  t.Index("email", {"unique": true})
 }
 
 create_table("todos") {
