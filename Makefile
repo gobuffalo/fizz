@@ -7,7 +7,7 @@ install:
 
 deps:
 	$(GO_BIN) get github.com/gobuffalo/release
-	$(GO_BIN) get github.com/gobuffalo/packr/packr
+	$(GO_BIN) get github.com/gobuffalo/packr/v2/packr2
 	$(GO_BIN) get -tags ${TAGS} -t ./...
 ifeq ($(GO111MODULE),on)
 	$(GO_BIN) mod tidy
@@ -18,7 +18,7 @@ build:
 	$(GO_BIN) build -v .
 
 test:
-	packr
+	packr2
 	./test.sh
 
 ci-test:
@@ -32,7 +32,7 @@ update:
 ifeq ($(GO111MODULE),on)
 	$(GO_BIN) mod tidy
 endif
-	packr
+	packr2
 	make test
 	make install
 ifeq ($(GO111MODULE),on)
