@@ -2,7 +2,7 @@ TAGS ?= "sqlite"
 GO_BIN ?= go
 
 install:
-	packr
+	packr2
 	$(GO_BIN) install -v .
 
 deps:
@@ -14,7 +14,7 @@ ifeq ($(GO111MODULE),on)
 endif
 
 build:
-	packr
+	packr2
 	$(GO_BIN) build -v .
 
 test:

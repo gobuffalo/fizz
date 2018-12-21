@@ -7,6 +7,7 @@ require (
 	github.com/gobuffalo/envy v1.6.11
 	github.com/gobuffalo/flect v0.0.0-20181210151238-24a2b68e0316 // indirect
 	github.com/gobuffalo/github_flavored_markdown v1.0.7 // indirect
+	github.com/gobuffalo/packr/v2 v2.0.0-rc.11
 	github.com/gobuffalo/plush v3.7.32+incompatible
 	github.com/gobuffalo/tags v2.0.15+incompatible // indirect
 	github.com/gobuffalo/uuid v2.0.5+incompatible // indirect
