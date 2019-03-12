@@ -4,7 +4,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
-	github.com/gobuffalo/envy v1.6.15
+	github.com/gobuffalo/envy v1.6.15 // indirect
 	github.com/gobuffalo/flect v0.1.0 // indirect
 	github.com/gobuffalo/github_flavored_markdown v1.0.7 // indirect
 	github.com/gobuffalo/plush v3.7.33+incompatible
