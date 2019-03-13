@@ -65,6 +65,10 @@ func (t Table) Fizz() string {
 	for _, i := range t.Indexes {
 		buff.WriteString(fmt.Sprintf("\t%s\n", i.String()))
 	}
+	// Write foreign keys
+	for _, fk := range t.ForeignKeys {
+		buff.WriteString(fmt.Sprintf("\t%s\n", fk.String()))
+	}
 	buff.WriteString("}")
 	return buff.String()
 }
