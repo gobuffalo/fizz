@@ -114,6 +114,55 @@ func Test_Table_StringerIndex(t *testing.T) {
 	r.Equal(expected, table.String())
 }
 
+func Test_Table_StringerForeignKey(t *testing.T) {
+	r := require.New(t)
+
+	// Single column
+	expected :=
+		`create_table("users_color") {
+	t.Column("name", "string")
+	t.Column("user_id", "int")
+	t.Timestamps()
+	t.ForeignKey("user_id", {"users": ["id"]}, {on_delete: "cascade"})
+}`
+
+	table := fizz.NewTable("users_color", nil)
+	r.NoError(table.Column("name", "string", nil))
+	r.NoError(table.Column("user_id", "int", nil))
+	r.NoError(table.ForeignKey("user_id",
+		map[string]interface{}{
+			"users": []interface{}{"id"},
+		},
+		fizz.Options{
+			"on_delete": "cascade",
+		}))
+
+	r.Equal(expected, table.String())
+
+	// Multiple columns
+	expected =
+		`create_table("users_color") {
+	t.Column("name", "string")
+	t.Column("user_id", "int")
+	t.Timestamps()
+	t.ForeignKey("user_id", {"users": ["id", "id2"]}, {on_delete: "cascade", on_update: "restrict"})
+}`
+
+	table = fizz.NewTable("users_color", nil)
+	r.NoError(table.Column("name", "string", nil))
+	r.NoError(table.Column("user_id", "int", nil))
+	r.NoError(table.ForeignKey("user_id",
+		map[string]interface{}{
+			"users": []interface{}{"id", "id2"},
+		},
+		fizz.Options{
+			"on_delete": "cascade",
+			"on_update": "restrict",
+		}))
+
+	r.Equal(expected, table.String())
+}
+
 func Test_Table_UnFizz(t *testing.T) {
 	r := require.New(t)
 	table := fizz.NewTable("users", nil)
