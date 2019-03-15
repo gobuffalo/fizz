@@ -26,7 +26,7 @@ steps:
         script: |
           GO111MODULE=off go get -v -tags sqlite github.com/gobuffalo/pop/soda
     displayName: "Install soda"
-  -script: |
+  - script: |
       $(GOBIN)/soda create -e $(SODA_DIALECT)
       $(GOBIN)/soda migrate -e $(SODA_DIALECT)
     workingDirectory: "$(modulePath)"         
