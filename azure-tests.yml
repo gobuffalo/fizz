@@ -26,16 +26,13 @@ steps:
         script: |
           GO111MODULE=off go get -v -tags sqlite github.com/gobuffalo/pop/soda
     displayName: "Install soda"
-  - task: Bash@3
-    inputs:
-        targetType: inline
-        script: |
-          cd $(modulePath)
-          $(GOBIN)/soda create -e $(SODA_DIALECT)
-          $(GOBIN)/soda migrate -e $(SODA_DIALECT)
+  -script: |
+      $(GOBIN)/soda create -e $(SODA_DIALECT)
+      $(GOBIN)/soda migrate -e $(SODA_DIALECT)
+    workingDirectory: "$(modulePath)"         
     displayName: "Create DB & run migrations"
   - script: |
       go get -t -v ./...
-      go test -race ./...
+      go test -race -v ./...
     workingDirectory: "$(modulePath)"
     displayName: "Tests"
