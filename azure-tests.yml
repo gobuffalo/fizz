@@ -1,0 +1,35 @@
+steps:
+  - task: GoTool@0
+    inputs:
+      version: $(go_version)
+  - task: Bash@3
+    inputs:
+      targetType: inline
+      script: |
+        mkdir -p "$(GOBIN)"
+        mkdir -p "$(GOPATH)/pkg"
+        mkdir -p "$(modulePath)"
+        shopt -s extglob
+        mv !(gopath) "$(modulePath)"
+    displayName: "Setup Go Workspace"
+  - task: Docker@1
+    displayName: Run postgres image
+    inputs:
+      command: run
+      imageName: postgres:9.6
+      ports: "5432:5432"
+      envVars: POSTGRES_DB=pop_test
+    condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'postgres'))
+  - task: Bash@3
+    inputs:
+        targetType: inline
+        script: |
+          GO111MODULE=off go get -v -tags sqlite github.com/gobuffalo/pop/soda
+          soda create -e $(SODA_DIALECT)
+          soda migrate -e $(SODA_DIALECT)
+    displayName: "Create DB & run migrations"
+  - script: |
+      go get -t -v ./...
+      go test -race ./...
+    workingDirectory: "$(modulePath)"
+    displayName: "Tests"

@@ -1,0 +1,33 @@
+
+variables:
+  GOBIN:  "$(GOPATH)/bin" # Go binaries path
+  GOPATH: "$(system.defaultWorkingDirectory)/gopath" # Go workspace path
+  modulePath: "$(GOPATH)/src/github.com/$(build.repository.name)" # Path to the module"s code
+
+jobs:
+- job: Linux
+  pool:
+    vmImage: "ubuntu-16.04"
+  strategy:
+    matrix:
+      go 1.10:
+        go_version: "1.10"
+        SODA_DIALECT: "postgres"
+      go 1.11 (on):
+        go_version: "1.11.5"
+        GO111MODULE: "on"
+        SODA_DIALECT: "postgres"
+      go 1.11 (off):
+        go_version: "1.11.5"
+        GO111MODULE: "off"
+        SODA_DIALECT: "postgres"
+      go 1.12 (on):
+        go_version: "1.12"
+        GO111MODULE: "on"
+        SODA_DIALECT: "postgres"
+      go 1.12 (off):
+        go_version: "1.12"
+        GO111MODULE: "off"
+        SODA_DIALECT: "postgres"
+  steps:
+    - template: azure-tests.yml
