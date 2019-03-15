@@ -42,9 +42,9 @@ steps:
     inputs:
         targetType: inline
         script: |
+          cd $(modulePath)
           $(GOBIN)/soda create -e $(SODA_DIALECT)
           $(GOBIN)/soda migrate -e $(SODA_DIALECT)
-    workingDirectory: "$(modulePath)"
     displayName: "Create DB & run migrations"
   - script: |
       go get -t -v ./...
