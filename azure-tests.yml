@@ -25,8 +25,8 @@ steps:
         targetType: inline
         script: |
           GO111MODULE=off go get -v -tags sqlite github.com/gobuffalo/pop/soda
-          soda create -e $(SODA_DIALECT)
-          soda migrate -e $(SODA_DIALECT)
+          $(GOBIN)/soda create -e $(SODA_DIALECT)
+          $(GOBIN)/soda migrate -e $(SODA_DIALECT)
     displayName: "Create DB & run migrations"
   - script: |
       go get -t -v ./...
