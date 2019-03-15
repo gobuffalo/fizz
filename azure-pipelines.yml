@@ -10,6 +10,7 @@ jobs:
     vmImage: "ubuntu-16.04"
   strategy:
     matrix:
+    # Postgres
       go 1.10:
         go_version: "1.10"
         SODA_DIALECT: "postgres"
@@ -29,5 +30,14 @@ jobs:
         go_version: "1.12"
         GO111MODULE: "off"
         SODA_DIALECT: "postgres"
+    # MySQL
+      go 1.12 (on):
+        go_version: "1.12"
+        GO111MODULE: "on"
+        SODA_DIALECT: "mysql"
+      go 1.12 (off):
+        go_version: "1.12"
+        GO111MODULE: "off"
+        SODA_DIALECT: "mysql"
   steps:
     - template: azure-tests.yml
