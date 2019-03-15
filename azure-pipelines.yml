@@ -11,31 +11,31 @@ jobs:
   strategy:
     matrix:
     # Postgres
-      go 1.10:
+      go 1.10 postgres:
         go_version: "1.10"
         SODA_DIALECT: "postgres"
-      go 1.11 (on):
+      go 1.11 (on) postgres:
         go_version: "1.11.5"
         GO111MODULE: "on"
         SODA_DIALECT: "postgres"
-      go 1.11 (off):
+      go 1.11 (off) postgres:
         go_version: "1.11.5"
         GO111MODULE: "off"
         SODA_DIALECT: "postgres"
-      go 1.12 (on):
+      go 1.12 (on) postgres:
         go_version: "1.12"
         GO111MODULE: "on"
         SODA_DIALECT: "postgres"
-      go 1.12 (off):
+      go 1.12 (off) postgres:
         go_version: "1.12"
         GO111MODULE: "off"
         SODA_DIALECT: "postgres"
     # MySQL
-      go 1.12 (on):
+      go 1.12 (on) mysql:
         go_version: "1.12"
         GO111MODULE: "on"
         SODA_DIALECT: "mysql"
-      go 1.12 (off):
+      go 1.12 (off) mysql:
         go_version: "1.12"
         GO111MODULE: "off"
         SODA_DIALECT: "mysql"
