@@ -97,6 +97,9 @@ func (t *Table) Column(name string, colType string, options Options) error {
 		Options: options,
 		Primary: primary,
 	}
+	if t.columnsCache == nil {
+		t.columnsCache = make(map[string]struct{})
+	}
 	t.columnsCache[name] = struct{}{}
 	// Ensure id is first
 	if name == "id" {
