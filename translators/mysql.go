@@ -158,16 +158,13 @@ func (p *MySQL) RenameIndex(t fizz.Table) (string, error) {
 	schema := p.Schema.(*mysqlSchema)
 	version, err := schema.Version()
 	if err != nil {
-		fmt.Println(err)
 		return "", errors.WithStack(err)
 	}
 	if version.LT(mysql57Version) {
-		fmt.Println("renaming indexes on MySQL versions less than 5.7 is not supported by fizz; use raw SQL instead")
 		return "", errors.New("renaming indexes on MySQL versions less than 5.7 is not supported by fizz; use raw SQL instead")
 	}
 	ix := t.Indexes
 	if len(ix) < 2 {
-		fmt.Println("not enough indexes supplied")
 		return "", errors.New("not enough indexes supplied")
 	}
 	oi := ix[0]

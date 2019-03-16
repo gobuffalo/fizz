@@ -69,10 +69,12 @@ jobs:
         go_version: "1.12"
         GO111MODULE: "on"
         SODA_DIALECT: "mysql"
+        MYSQL_PORT: "3307"
       go 1.12 (off) mysql:
         go_version: "1.12"
         GO111MODULE: "off"
         SODA_DIALECT: "mysql"
+        MYSQL_PORT: "3307"
     # SQLite3
       go 1.12 (on) sqlite:
         go_version: "1.12"
