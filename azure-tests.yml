@@ -32,6 +32,14 @@ steps:
         MYSQL_USER=pop
         MYSQL_PASSWORD=pop
     condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'mysql'))
+  - task: Docker@1
+    displayName: Run cockroach image
+    inputs:
+      command: run
+      imageName: cockroachdb/cockroach:v1.1.1
+      ports: "26257:26257"
+      containerCommand: start --insecure
+    condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'cockroach'))
   - task: Bash@3
     inputs:
         targetType: inline

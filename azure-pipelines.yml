@@ -64,6 +64,15 @@ jobs:
         go_version: "1.12"
         GO111MODULE: "off"
         SODA_DIALECT: "postgres"
+    # Cockroach
+      go 1.12 (on) cockroach:
+        go_version: "1.12"
+        GO111MODULE: "on"
+        SODA_DIALECT: "cockroach"
+      go 1.12 (off) cockroach:
+        go_version: "1.12"
+        GO111MODULE: "off"
+        SODA_DIALECT: "cockroach"
     # MySQL
       go 1.12 (on) mysql:
         go_version: "1.12"
