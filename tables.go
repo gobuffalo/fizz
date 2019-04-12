@@ -208,6 +208,11 @@ func (t *Table) PrimaryKey(pk ...string) error {
 	return nil
 }
 
+// PrimaryKeys gets the list of registered primary key fields.
+func (t *Table) PrimaryKeys() []string {
+	return t.primaryKey
+}
+
 // ColumnNames returns the names of the Table's columns.
 func (t *Table) ColumnNames() []string {
 	cols := make([]string, len(t.Columns))

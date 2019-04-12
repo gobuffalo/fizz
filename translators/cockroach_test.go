@@ -122,6 +122,26 @@ CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id)
 	r.Equal(ddl, res)
 }
 
+func (p *CockroachSuite) Test_Cockroach_CreateTables_WithCompositePrimaryKey() {
+	r := p.Require()
+	ddl := `CREATE TABLE "user_profiles" (
+"user_id" INT NOT NULL,
+"profile_id" INT NOT NULL,
+"created_at" timestamp NOT NULL,
+"updated_at" timestamp NOT NULL,
+PRIMARY KEY("user_id", "profile_id")
+);COMMIT TRANSACTION;BEGIN TRANSACTION;`
+
+	res, _ := fizz.AString(`
+	create_table("user_profiles") {
+		t.Column("user_id", "INT")
+		t.Column("profile_id", "INT")
+		t.PrimaryKey("user_id", "profile_id")
+	}
+	`, p.crdbt())
+	r.Equal(ddl, res)
+}
+
 func (p *CockroachSuite) Test_Cockroach_DropTable() {
 	r := p.Require()
 

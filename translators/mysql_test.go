@@ -142,6 +142,26 @@ FOREIGN KEY (` + "`user_id`" + `) REFERENCES ` + "`users`" + ` (` + "`id`" + `)
 	r.Equal(ddl, res)
 }
 
+func (p *MySQLSuite) Test_MySQL_CreateTables_WithCompositePrimaryKey() {
+	r := p.Require()
+	ddl := `CREATE TABLE ` + "`user_profiles`" + ` (
+` + "`user_id`" + ` INTEGER NOT NULL,
+` + "`profile_id`" + ` INTEGER NOT NULL,
+` + "`created_at`" + ` DATETIME NOT NULL,
+` + "`updated_at`" + ` DATETIME NOT NULL,
+PRIMARY KEY(` + "`user_id`" + `, ` + "`profile_id`" + `)
+) ENGINE=InnoDB;`
+
+	res, _ := fizz.AString(`
+	create_table("user_profiles") {
+		t.Column("user_id", "INT")
+		t.Column("profile_id", "INT")
+		t.PrimaryKey("user_id", "profile_id")
+	}
+	`, myt)
+	r.Equal(ddl, res)
+}
+
 func (p *MySQLSuite) Test_MySQL_DropTable() {
 	r := p.Require()
 

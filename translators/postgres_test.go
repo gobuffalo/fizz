@@ -116,7 +116,7 @@ PRIMARY KEY("uuid")
 	r.Equal(ddl, res)
 }
 
-func (p *PostgreSQLSuite) Test_Postgre_CreateTables_WithForeignKeys() {
+func (p *PostgreSQLSuite) Test_Postgres_CreateTables_WithForeignKeys() {
 	r := p.Require()
 	ddl := `CREATE TABLE "users" (
 "id" SERIAL NOT NULL,
@@ -150,6 +150,26 @@ FOREIGN KEY (user_id) REFERENCES users (id)
 	}
 	`, pgt)
 	r.NoError(err)
+	r.Equal(ddl, res)
+}
+
+func (p *PostgreSQLSuite) Test_Postgres_CreateTables_WithCompositePrimaryKey() {
+	r := p.Require()
+	ddl := `CREATE TABLE "user_profiles" (
+"user_id" INT NOT NULL,
+"profile_id" INT NOT NULL,
+"created_at" timestamp NOT NULL,
+"updated_at" timestamp NOT NULL,
+PRIMARY KEY("user_id", "profile_id")
+);`
+
+	res, _ := fizz.AString(`
+	create_table("user_profiles") {
+		t.Column("user_id", "INT")
+		t.Column("profile_id", "INT")
+		t.PrimaryKey("user_id", "profile_id")
+	}
+	`, pgt)
 	r.Equal(ddl, res)
 }
 
