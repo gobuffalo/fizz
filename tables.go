@@ -200,6 +200,9 @@ func (t *Table) PrimaryKey(pk ...string) error {
 	if t.primaryKey != nil {
 		return errors.New("duplicate primary key")
 	}
+	if !t.HasColumns(pk...) {
+		return errors.New("columns must be declared before the primary key")
+	}
 	t.primaryKey = make([]string, 0)
 	t.primaryKey = append(t.primaryKey, pk...)
 	return nil
