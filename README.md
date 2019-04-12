@@ -60,6 +60,18 @@ For example for PostgreSQL you could pass `jsonb`and it will be supported, howev
 * `after` - (MySQL Only) Add a column after another column in the table. `example: {"after":"created_at"}`
 * `first` - (MySQL Only) Add a column to the first position in the table. `example: {"first": true}`
 
+#### Composite primary key 
+
+```javascript
+create_table("user_privileges") {
+	t.Column("user_id", "int")
+	t.Column("privilege_id", "int")
+	t.PrimaryKey("user_id", "privilege_id")
+}
+```
+
+Please note that the `t.PrimaryKey` statement MUST be after the columns definitions.
+
 ## Drop a Table
 
 ``` javascript
