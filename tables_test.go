@@ -222,6 +222,13 @@ func Test_Table_AddPrimaryKey(t *testing.T) {
 	r.NoError(table.Column("email", "string", nil))
 	r.Equal(expected, table.String())
 
+	table = fizz.NewTable("users", nil)
+	r.NoError(table.Column("id", "int", nil))
+	r.NoError(table.Column("name", "string", nil))
+	r.NoError(table.Column("email", "string", nil))
+	r.NoError(table.PrimaryKey("id"))
+	r.Equal(expected, table.String())
+
 	// Add composite primary key
 	expected =
 		`create_table("user_privileges") {

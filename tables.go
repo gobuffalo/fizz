@@ -203,6 +203,14 @@ func (t *Table) PrimaryKey(pk ...string) error {
 	if !t.HasColumns(pk...) {
 		return errors.New("columns must be declared before the primary key")
 	}
+	if len(pk) == 1 {
+		for i, c := range t.Columns {
+			if c.Name == pk[0] {
+				t.Columns[i].Primary = true
+				break
+			}
+		}
+	}
 	t.primaryKey = make([]string, 0)
 	t.primaryKey = append(t.primaryKey, pk...)
 	return nil

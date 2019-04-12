@@ -8,8 +8,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+// MsSqlServer is a MS SqlServer-specific translator.
 type MsSqlServer struct{}
 
+// NewMsSqlServer constructs a new MsSqlServer translator.
 func NewMsSqlServer() *MsSqlServer {
 	return &MsSqlServer{}
 }
