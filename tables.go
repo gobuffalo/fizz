@@ -17,6 +17,7 @@ type Table struct {
 	Columns      []Column
 	Indexes      []Index
 	ForeignKeys  []ForeignKey
+	primaryKey   []string
 	Options      map[string]interface{}
 	columnsCache map[string]struct{}
 }
@@ -61,6 +62,14 @@ func (t Table) Fizz() string {
 	if timestampsOpt {
 		buff.WriteString("\tt.Timestamps()\n")
 	}
+	// Write primary key (single column pk will be written in inline form as the column opt)
+	if len(t.primaryKey) > 1 {
+		pks := make([]string, len(t.primaryKey))
+		for i, pk := range t.primaryKey {
+			pks[i] = fmt.Sprintf("\"%s\"", pk)
+		}
+		buff.WriteString(fmt.Sprintf("\tt.PrimaryKey(%s)\n", strings.Join(pks, ", ")))
+	}
 	// Write indexes
 	for _, i := range t.Indexes {
 		buff.WriteString(fmt.Sprintf("\t%s\n", i.String()))
@@ -89,7 +98,11 @@ func (t *Table) Column(name string, colType string, options Options) error {
 	}
 	var primary bool
 	if _, ok := options["primary"]; ok {
+		if t.primaryKey != nil {
+			return errors.New("could not define multiple primary keys")
+		}
 		primary = true
+		t.primaryKey = []string{name}
 	}
 	c := Column{
 		Name:    name,
@@ -114,7 +127,7 @@ func (t *Table) Column(name string, colType string, options Options) error {
 func (t *Table) ForeignKey(column string, refs interface{}, options Options) error {
 	fkr, err := parseForeignKeyRef(refs)
 	if err != nil {
-		return errors.WithStack(err)
+		return errors.Wrap(err, "could not parse foreign key")
 	}
 	fk := ForeignKey{
 		Column:     column,
@@ -176,6 +189,20 @@ func (t *Table) Timestamps() error {
 		return err
 	}
 	return t.Timestamp("updated_at")
+}
+
+// PrimaryKey adds a primary key to the table. It's useful to define a composite
+// primary key.
+func (t *Table) PrimaryKey(pk ...string) error {
+	if len(pk) == 0 {
+		return errors.New("missing columns for primary key")
+	}
+	if t.primaryKey != nil {
+		return errors.New("duplicate primary key")
+	}
+	t.primaryKey = make([]string, 0)
+	t.primaryKey = append(t.primaryKey, pk...)
+	return nil
 }
 
 // ColumnNames returns the names of the Table's columns.
