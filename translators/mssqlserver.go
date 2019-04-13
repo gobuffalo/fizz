@@ -8,9 +8,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-type MsSqlServer struct {
-}
+// MsSqlServer is a MS SqlServer-specific translator.
+type MsSqlServer struct{}
 
+// NewMsSqlServer constructs a new MsSqlServer translator.
 func NewMsSqlServer() *MsSqlServer {
 	return &MsSqlServer{}
 }
@@ -29,6 +30,15 @@ func (p *MsSqlServer) CreateTable(t fizz.Table) (string, error) {
 			s = p.buildAddColumn(t.Name, c)
 		}
 		cols = append(cols, s)
+	}
+
+	primaryKeys := t.PrimaryKeys()
+	if len(primaryKeys) > 1 {
+		pks := make([]string, len(primaryKeys))
+		for i, pk := range primaryKeys {
+			pks[i] = fmt.Sprintf("[%s]", pk)
+		}
+		cols = append(cols, fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(pks, ", ")))
 	}
 
 	s = fmt.Sprintf("CREATE TABLE %s (\n%s\n);", t.Name, strings.Join(cols, ",\n"))

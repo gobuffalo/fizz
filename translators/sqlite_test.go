@@ -125,6 +125,26 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable_UUID() {
 	r.Equal(ddl, res)
 }
 
+func (p *SQLiteSuite) Test_SQLite_CreateTables_WithCompositePrimaryKey() {
+	r := p.Require()
+	ddl := `CREATE TABLE "user_profiles" (
+"user_id" INTEGER NOT NULL,
+"profile_id" INTEGER NOT NULL,
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL,
+PRIMARY KEY("user_id", "profile_id")
+);`
+
+	res, _ := fizz.AString(`
+	create_table("user_profiles") {
+		t.Column("user_id", "INT")
+		t.Column("profile_id", "INT")
+		t.PrimaryKey("user_id", "profile_id")
+	}
+	`, sqt)
+	r.Equal(ddl, res)
+}
+
 func (p *SQLiteSuite) Test_SQLite_DropTable() {
 	r := p.Require()
 

@@ -51,6 +51,15 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 		cols = append(cols, p.buildForeignKey(t, fk, true))
 	}
 
+	primaryKeys := t.PrimaryKeys()
+	if len(primaryKeys) > 1 {
+		pks := make([]string, len(primaryKeys))
+		for i, pk := range primaryKeys {
+			pks[i] = fmt.Sprintf("\"%s\"", pk)
+		}
+		cols = append(cols, fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(pks, ", ")))
+	}
+
 	s = fmt.Sprintf("CREATE TABLE \"%s\" (\n%s\n);", t.Name, strings.Join(cols, ",\n"))
 	sql = append(sql, s)
 

@@ -204,3 +204,67 @@ func Test_Table_AddEmptyIndex(t *testing.T) {
 	r.NoError(table.Column("email", "string", nil))
 	r.Error(table.Index([]string{}, nil))
 }
+
+func Test_Table_AddPrimaryKey(t *testing.T) {
+	r := require.New(t)
+
+	// Add single primary key
+	expected :=
+		`create_table("users") {
+	t.Column("id", "int", {primary: true})
+	t.Column("name", "string")
+	t.Column("email", "string")
+	t.Timestamps()
+}`
+	table := fizz.NewTable("users", nil)
+	r.NoError(table.Column("id", "int", fizz.Options{"primary": true}))
+	r.NoError(table.Column("name", "string", nil))
+	r.NoError(table.Column("email", "string", nil))
+	r.Equal(expected, table.String())
+
+	table = fizz.NewTable("users", nil)
+	r.NoError(table.Column("id", "int", nil))
+	r.NoError(table.Column("name", "string", nil))
+	r.NoError(table.Column("email", "string", nil))
+	r.NoError(table.PrimaryKey("id"))
+	r.Equal(expected, table.String())
+
+	// Add composite primary key
+	expected =
+		`create_table("user_privileges") {
+	t.Column("user_id", "int")
+	t.Column("privilege_id", "int")
+	t.Timestamps()
+	t.PrimaryKey("user_id", "privilege_id")
+}`
+	table = fizz.NewTable("user_privileges", nil)
+	r.NoError(table.Column("user_id", "int", nil))
+	r.NoError(table.Column("privilege_id", "int", nil))
+	r.NoError(table.PrimaryKey("user_id", "privilege_id"))
+	r.Equal(expected, table.String())
+}
+
+func Test_Table_AddPrimaryKey_Errors(t *testing.T) {
+	r := require.New(t)
+
+	// Primary key on unknown column
+	table := fizz.NewTable("users", nil)
+	r.NoError(table.Column("id", "int", nil))
+	r.Error(table.PrimaryKey("id2"))
+
+	// Duplicate primary key
+	table = fizz.NewTable("users", nil)
+	r.NoError(table.Column("id", "int", nil))
+	r.NoError(table.PrimaryKey("id"))
+	r.Error(table.PrimaryKey("id"))
+
+	// Duplicate primary key
+	table = fizz.NewTable("users", nil)
+	r.NoError(table.Column("id", "int", fizz.Options{"primary": true}))
+	r.Error(table.PrimaryKey("id"))
+
+	// Duplicate inline primary key
+	table = fizz.NewTable("users", nil)
+	r.NoError(table.Column("id", "int", fizz.Options{"primary": true}))
+	r.Error(table.Column("id2", "int", fizz.Options{"primary": true}))
+}
