@@ -17,7 +17,7 @@ type Table struct {
 	Columns      []Column
 	Indexes      []Index
 	ForeignKeys  []ForeignKey
-	primaryKey   []string
+	primaryKeys  []string
 	Options      map[string]interface{}
 	columnsCache map[string]struct{}
 }
@@ -63,9 +63,9 @@ func (t Table) Fizz() string {
 		buff.WriteString("\tt.Timestamps()\n")
 	}
 	// Write primary key (single column pk will be written in inline form as the column opt)
-	if len(t.primaryKey) > 1 {
-		pks := make([]string, len(t.primaryKey))
-		for i, pk := range t.primaryKey {
+	if len(t.primaryKeys) > 1 {
+		pks := make([]string, len(t.primaryKeys))
+		for i, pk := range t.primaryKeys {
 			pks[i] = fmt.Sprintf("\"%s\"", pk)
 		}
 		buff.WriteString(fmt.Sprintf("\tt.PrimaryKey(%s)\n", strings.Join(pks, ", ")))
@@ -98,11 +98,11 @@ func (t *Table) Column(name string, colType string, options Options) error {
 	}
 	var primary bool
 	if _, ok := options["primary"]; ok {
-		if t.primaryKey != nil {
+		if t.primaryKeys != nil {
 			return errors.New("could not define multiple primary keys")
 		}
 		primary = true
-		t.primaryKey = []string{name}
+		t.primaryKeys = []string{name}
 	}
 	c := Column{
 		Name:    name,
@@ -197,7 +197,7 @@ func (t *Table) PrimaryKey(pk ...string) error {
 	if len(pk) == 0 {
 		return errors.New("missing columns for primary key")
 	}
-	if t.primaryKey != nil {
+	if t.primaryKeys != nil {
 		return errors.New("duplicate primary key")
 	}
 	if !t.HasColumns(pk...) {
@@ -211,14 +211,14 @@ func (t *Table) PrimaryKey(pk ...string) error {
 			}
 		}
 	}
-	t.primaryKey = make([]string, 0)
-	t.primaryKey = append(t.primaryKey, pk...)
+	t.primaryKeys = make([]string, 0)
+	t.primaryKeys = append(t.primaryKeys, pk...)
 	return nil
 }
 
 // PrimaryKeys gets the list of registered primary key fields.
 func (t *Table) PrimaryKeys() []string {
-	return t.primaryKey
+	return t.primaryKeys
 }
 
 // ColumnNames returns the names of the Table's columns.
