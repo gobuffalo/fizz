@@ -33,16 +33,16 @@ func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 		if c.Primary {
 			switch c.ColType {
 			case "string", "uuid":
-				s = fmt.Sprintf("\"%s\" %s PRIMARY KEY", c.Name, p.colType(c))
-			case "integer", "int", "INT":
-				s = fmt.Sprintf("\"%s\" SERIAL PRIMARY KEY", c.Name)
+			case "integer", "INT", "int":
+				c.ColType = "SERIAL"
 			default:
 				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
 			}
-		} else {
-			s = p.buildAddColumn(c)
 		}
-		cols = append(cols, s)
+		cols = append(cols, p.buildAddColumn(c))
+		if c.Primary {
+			cols = append(cols, fmt.Sprintf(`PRIMARY KEY("%s")`, c.Name))
+		}
 	}
 
 	for _, fk := range t.ForeignKeys {
@@ -301,7 +301,7 @@ func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
 func (p *Cockroach) buildAddColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 
-	if c.Options["null"] == nil {
+	if c.Options["null"] == nil || c.Primary {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
 	if c.Options["default"] != nil {
