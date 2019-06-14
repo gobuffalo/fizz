@@ -12,7 +12,7 @@ func Test_Exec(t *testing.T) {
 	r := require.New(t)
 
 	b := NewBubbler(nil)
-	f := fizzer{b}
+	f := fizzer{Bubbler: b, DisableExec: false}
 	bb := &bytes.Buffer{}
 	c := f.Exec(bb)
 	c("echo hello")
@@ -23,7 +23,7 @@ func Test_ExecQuoted(t *testing.T) {
 	r := require.New(t)
 
 	b := NewBubbler(nil)
-	f := fizzer{b}
+	f := fizzer{Bubbler: b, DisableExec: false}
 	bb := &bytes.Buffer{}
 	c := f.Exec(bb)
 	// without proper splitting we would get "'a b c'"

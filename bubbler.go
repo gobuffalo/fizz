@@ -11,13 +11,23 @@ type BubbleType int
 
 type Bubbler struct {
 	Translator
-	data []string
+	data        []string
+	DisableExec bool
 }
 
 func NewBubbler(t Translator) *Bubbler {
 	return &Bubbler{
-		Translator: t,
-		data:       []string{},
+		Translator:  t,
+		data:        []string{},
+		DisableExec: false,
+	}
+}
+
+func NewBubblerWithDisabledExec(t Translator) *Bubbler {
+	return &Bubbler{
+		Translator:  t,
+		data:        []string{},
+		DisableExec: true,
 	}
 }
 
@@ -26,7 +36,10 @@ func (b *Bubbler) String() string {
 }
 
 func (b *Bubbler) Bubble(s string) (string, error) {
-	f := fizzer{b}
+	f := fizzer{
+		Bubbler:     b,
+		DisableExec: b.DisableExec,
+	}
 	ctx := plush.NewContextWith(map[string]interface{}{
 		"exec":             f.Exec(os.Stdout),
 		"create_table":     f.CreateTable,

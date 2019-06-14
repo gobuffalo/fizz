@@ -17,7 +17,8 @@ import (
 type Options map[string]interface{}
 
 type fizzer struct {
-	Bubbler *Bubbler
+	Bubbler     *Bubbler
+	DisableExec bool
 }
 
 func (f fizzer) add(s string, err error) error {
@@ -29,6 +30,11 @@ func (f fizzer) add(s string, err error) error {
 }
 
 func (f fizzer) Exec(out io.Writer) func(string) error {
+	if f.DisableExec {
+		return func(s string) error {
+			return nil
+		}
+	}
 	return func(s string) error {
 		args, err := shellquote.Split(s)
 		if err != nil {
