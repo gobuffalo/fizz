@@ -198,10 +198,10 @@ func (p *MySQL) DropForeignKey(t fizz.Table) (string, error) {
 
 	var ifExists string
 	if v, ok := fk.Options["if_exists"]; ok && v.(bool) {
-		ifExists = "IF EXISTS"
+		ifExists = "IF EXISTS "
 	}
 
-	s := fmt.Sprintf("ALTER TABLE %s DROP FOREIGN KEY %s `%s`;", p.escapeIdentifier(t.Name), ifExists, fk.Name)
+	s := fmt.Sprintf("ALTER TABLE %s DROP FOREIGN KEY %s`%s`;", p.escapeIdentifier(t.Name), ifExists, fk.Name)
 	return s, nil
 }
 
@@ -284,7 +284,7 @@ func (p *MySQL) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bool)
 	return s
 }
 
-func (p *MySQL) escapeIdentifier(s string) string {
+func (MySQL) escapeIdentifier(s string) string {
 	if !strings.ContainsRune(s, '.') {
 		return fmt.Sprintf("`%s`", s)
 	}

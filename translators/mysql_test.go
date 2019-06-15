@@ -314,7 +314,7 @@ func (p *MySQLSuite) Test_MySQL_AddForeignKey() {
 
 func (p *MySQLSuite) Test_MySQL_DropForeignKey() {
 	r := p.Require()
-	ddl := `ALTER TABLE ` + "`profiles`" + ` DROP FOREIGN KEY  ` + "`profiles_users_id_fk`" + `;`
+	ddl := `ALTER TABLE ` + "`profiles`" + ` DROP FOREIGN KEY ` + "`profiles_users_id_fk`" + `;`
 
 	res, err := fizz.AString(`drop_foreign_key("profiles", "profiles_users_id_fk", {})`, myt)
 	r.NoError(err)
