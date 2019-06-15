@@ -272,7 +272,7 @@ func (p *Cockroach) AddForeignKey(t fizz.Table) (string, error) {
 
 func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("Not enough foreign keys supplied!")
+		return "", errors.New("not enough foreign keys supplied")
 	}
 
 	fk := t.ForeignKeys[0]
@@ -291,10 +291,10 @@ func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
 
 	var ifExists string
 	if v, ok := fk.Options["if_exists"]; ok && v.(bool) {
-		ifExists = "IF EXISTS"
+		ifExists = "IF EXISTS "
 	}
 
-	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, ifExists, fk.Name)
+	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s\"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", p.escapeIdentifier(t.Name), ifExists, fk.Name)
 	return s, nil
 }
 
@@ -402,12 +402,27 @@ func (p *Cockroach) colType(c fizz.Column) string {
 }
 
 func (p *Cockroach) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bool) string {
-	refs := fmt.Sprintf("%s (%s)", fk.References.Table, strings.Join(fk.References.Columns, ", "))
-	s := fmt.Sprintf("CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s", fk.Name, fk.Column, refs)
+	rcols := []string{}
+	for _, c := range fk.References.Columns {
+		rcols = append(rcols, fmt.Sprintf("\"%s\"", c))
+	}
+	refs := fmt.Sprintf("%s (%s)", p.escapeIdentifier(fk.References.Table), strings.Join(rcols, ", "))
+	s := fmt.Sprintf("CONSTRAINT \"%s\" FOREIGN KEY (\"%s\") REFERENCES %s", fk.Name, fk.Column, refs)
 
 	if !onCreate {
-		s = fmt.Sprintf("ALTER TABLE %s ADD %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, s)
+		s = fmt.Sprintf("ALTER TABLE %s ADD %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", p.escapeIdentifier(t.Name), s)
 	}
 
 	return s
+}
+
+func (Cockroach) escapeIdentifier(s string) string {
+	if !strings.ContainsRune(s, '.') {
+		return fmt.Sprintf("\"%s\"", s)
+	}
+	parts := strings.Split(s, ".")
+	for _, p := range parts {
+		p = fmt.Sprintf("\"%s\"", p)
+	}
+	return strings.Join(parts, ".")
 }
