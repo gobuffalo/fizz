@@ -146,7 +146,7 @@ func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
 
 func (p *Postgres) AddForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("not enough foreign keys supplied!")
+		return "", errors.New("not enough foreign keys supplied")
 	}
 
 	return p.buildForeignKey(t, t.ForeignKeys[0], false), nil
