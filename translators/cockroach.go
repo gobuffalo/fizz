@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/pkg/errors"
 )
 
 type Cockroach struct {
@@ -37,7 +36,7 @@ func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 			case "integer", "int", "INT":
 				s = fmt.Sprintf("\"%s\" SERIAL PRIMARY KEY", c.Name)
 			default:
-				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
+				return "", fmt.Errorf("can not use %s as a primary key", c.ColType)
 			}
 		} else {
 			s = p.buildAddColumn(c)
@@ -73,7 +72,7 @@ func (p *Cockroach) DropTable(t fizz.Table) (string, error) {
 
 func (p *Cockroach) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
-		return "", errors.New("not enough table names supplied")
+		return "", fmt.Errorf("not enough table names supplied")
 	}
 	oldName := t[0].Name
 	newName := t[1].Name
@@ -88,7 +87,7 @@ func (p *Cockroach) RenameTable(t []fizz.Table) (string, error) {
 
 func (p *Cockroach) ChangeColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 
@@ -129,7 +128,7 @@ func (p *Cockroach) ChangeColumn(t fizz.Table) (string, error) {
 
 func (p *Cockroach) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, p.buildAddColumn(c))
@@ -154,7 +153,7 @@ func (p *Cockroach) AddColumn(t fizz.Table) (string, error) {
 
 func (p *Cockroach) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	p.Schema.DeleteColumn(t.Name, c.Name)
@@ -163,7 +162,7 @@ func (p *Cockroach) DropColumn(t fizz.Table) (string, error) {
 
 func (p *Cockroach) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 
 	oc := t.Columns[0]
@@ -186,7 +185,7 @@ func (p *Cockroach) RenameColumn(t fizz.Table) (string, error) {
 
 func (p *Cockroach) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("Not enough indexes supplied!")
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("CREATE INDEX \"%s\" ON \"%s\" (%s);COMMIT TRANSACTION;BEGIN TRANSACTION;", i.Name, t.Name, strings.Join(i.Columns, ", "))
@@ -205,7 +204,7 @@ func (p *Cockroach) AddIndex(t fizz.Table) (string, error) {
 
 func (p *Cockroach) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("Not enough indexes supplied!")
 	}
 	i := t.Indexes[0]
 
@@ -228,7 +227,7 @@ func (p *Cockroach) DropIndex(t fizz.Table) (string, error) {
 func (p *Cockroach) RenameIndex(t fizz.Table) (string, error) {
 	ix := t.Indexes
 	if len(ix) < 2 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("Not enough indexes supplied!")
 	}
 	oi := ix[0]
 	ni := ix[1]
@@ -249,7 +248,7 @@ func (p *Cockroach) RenameIndex(t fizz.Table) (string, error) {
 
 func (p *Cockroach) AddForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("Not enough foreign keys supplied!")
+		return "", fmt.Errorf("Not enough foreign keys supplied!")
 	}
 
 	tableInfo, err := p.Schema.TableInfo(t.Name)
@@ -263,7 +262,7 @@ func (p *Cockroach) AddForeignKey(t fizz.Table) (string, error) {
 
 func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("Not enough foreign keys supplied!")
+		return "", fmt.Errorf("Not enough foreign keys supplied!")
 	}
 
 	fk := t.ForeignKeys[0]

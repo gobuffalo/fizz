@@ -3,8 +3,6 @@ package fizz
 import (
 	"fmt"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 type ForeignKeyRef struct {
@@ -22,7 +20,7 @@ type ForeignKey struct {
 func (f fizzer) AddForeignKey(table string, column string, refs interface{}, options Options) error {
 	fkr, err := parseForeignKeyRef(refs)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	fk := ForeignKey{
 		Column:     column,
@@ -59,10 +57,10 @@ func parseForeignKeyRef(refs interface{}) (ForeignKeyRef, error) {
 	fkr := ForeignKeyRef{}
 	refMap, ok := refs.(map[string]interface{})
 	if !ok {
-		return fkr, errors.Errorf(`invalid references format %s\nmust be "{"table": ["colum1", "column2"]}"`, refs)
+		return fkr, fmt.Errorf(`invalid references format %s\nmust be "{"table": ["colum1", "column2"]}"`, refs)
 	}
 	if len(refMap) != 1 {
-		return fkr, errors.Errorf("only one table is supported as Foreign key reference")
+		return fkr, fmt.Errorf("only one table is supported as Foreign key reference")
 	}
 	for table, columns := range refMap {
 		fkr.Table = table

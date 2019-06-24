@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/pkg/errors"
 )
 
 type Postgres struct {
@@ -28,7 +27,7 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 			case "bigint", "BIGINT":
 				c.ColType = "BIGSERIAL"
 			default:
-				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
+				return "", fmt.Errorf("can not use %s as a primary key", c.ColType)
 			}
 		}
 		cols = append(cols, p.buildAddColumn(c))
@@ -64,14 +63,14 @@ func (p *Postgres) DropTable(t fizz.Table) (string, error) {
 
 func (p *Postgres) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
-		return "", errors.New("not enough table names supplied")
+		return "", fmt.Errorf("not enough table names supplied")
 	}
 	return fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", t[0].Name, t[1].Name), nil
 }
 
 func (p *Postgres) ChangeColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	s := fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN %s;", t.Name, p.buildChangeColumn(c))
@@ -80,7 +79,7 @@ func (p *Postgres) ChangeColumn(t fizz.Table) (string, error) {
 
 func (p *Postgres) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", t.Name, p.buildAddColumn(c))
@@ -89,7 +88,7 @@ func (p *Postgres) AddColumn(t fizz.Table) (string, error) {
 
 func (p *Postgres) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	return fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";", t.Name, c.Name), nil
@@ -97,7 +96,7 @@ func (p *Postgres) DropColumn(t fizz.Table) (string, error) {
 
 func (p *Postgres) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	oc := t.Columns[0]
 	nc := t.Columns[1]
@@ -107,7 +106,7 @@ func (p *Postgres) RenameColumn(t fizz.Table) (string, error) {
 
 func (p *Postgres) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("Not enough indexes supplied!")
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("CREATE INDEX \"%s\" ON \"%s\" (%s);", i.Name, t.Name, strings.Join(i.Columns, ", "))
@@ -119,7 +118,7 @@ func (p *Postgres) AddIndex(t fizz.Table) (string, error) {
 
 func (p *Postgres) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("Not enough indexes supplied!")
 	}
 	i := t.Indexes[0]
 	return fmt.Sprintf("DROP INDEX \"%s\";", i.Name), nil
@@ -128,7 +127,7 @@ func (p *Postgres) DropIndex(t fizz.Table) (string, error) {
 func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
 	ix := t.Indexes
 	if len(ix) < 2 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("Not enough indexes supplied!")
 	}
 	oi := ix[0]
 	ni := ix[1]
@@ -137,7 +136,7 @@ func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
 
 func (p *Postgres) AddForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("Not enough foreign keys supplied!")
+		return "", fmt.Errorf("Not enough foreign keys supplied!")
 	}
 
 	return p.buildForeignKey(t, t.ForeignKeys[0], false), nil
@@ -145,7 +144,7 @@ func (p *Postgres) AddForeignKey(t fizz.Table) (string, error) {
 
 func (p *Postgres) DropForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("Not enough foreign keys supplied!")
+		return "", fmt.Errorf("Not enough foreign keys supplied!")
 	}
 
 	fk := t.ForeignKeys[0]

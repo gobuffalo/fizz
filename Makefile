@@ -1,46 +1,66 @@
 TAGS ?= "sqlite"
-GO_BIN ?= go
+GO_BIN ?= "go"
 
-install:
-	packr2
-	$(GO_BIN) install -v .
+install: packr
+	$(GO_BIN) install -tags ${TAGS} -v .
+	make tidy
 
-deps:
-	$(GO_BIN) get github.com/gobuffalo/release
-	$(GO_BIN) get github.com/gobuffalo/packr/v2/packr2
-	$(GO_BIN) get -tags ${TAGS} -t ./...
+tidy:
 ifeq ($(GO111MODULE),on)
 	$(GO_BIN) mod tidy
+else
+	echo skipping go mod tidy
 endif
 
-build:
-	packr2
+deps:
+	$(GO_BIN) get -tags ${TAGS} -t ./...
+	make tidy
+
+build: packr
 	$(GO_BIN) build -v .
+	make tidy
 
-test:
-	packr2
+test: packr
 	./test.sh
+	make tidy
 
-ci-test:
+ci-deps: packr
+	$(GO_BIN) get -tags ${TAGS} -t ./...
+
+ci-test: packr
 	$(GO_BIN) test -tags ${TAGS} -race ./...
 
 lint:
-	gometalinter --vendor ./... --deadline=1m --skip=internal
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint
+	golangci-lint run --enable-all
+	make tidy
 
 update:
-	$(GO_BIN) get -u -tags ${TAGS}
 ifeq ($(GO111MODULE),on)
+	rm go.*
+	$(GO_BIN) mod init
 	$(GO_BIN) mod tidy
+else
+	$(GO_BIN) get -u -tags ${TAGS}
 endif
-	packr2
 	make test
 	make install
-ifeq ($(GO111MODULE),on)
-	$(GO_BIN) mod tidy
-endif
+	make tidy
 
-release-test:
+release-test: packr
 	$(GO_BIN) test -tags ${TAGS} -race ./...
+	make tidy
 
 release:
+	$(GO_BIN) get github.com/gobuffalo/release
+	make tidy
 	release -y -f version.go
+	make tidy
+
+packr:
+	$(GO_BIN) get github.com/gobuffalo/packr/v2/packr2
+	packr2
+	make tidy
+
+
+
