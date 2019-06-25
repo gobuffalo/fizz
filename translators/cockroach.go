@@ -213,7 +213,7 @@ func (p *Cockroach) AddIndex(t fizz.Table) (string, error) {
 
 func (p *Cockroach) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", fmt.Errorf("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 
@@ -236,7 +236,7 @@ func (p *Cockroach) DropIndex(t fizz.Table) (string, error) {
 func (p *Cockroach) RenameIndex(t fizz.Table) (string, error) {
 	ix := t.Indexes
 	if len(ix) < 2 {
-		return "", fmt.Errorf("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	oi := ix[0]
 	ni := ix[1]
