@@ -33,7 +33,8 @@ func (p *CockroachSuite) crdbt() *translators.Cockroach {
 func (p *CockroachSuite) Test_Cockroach_CreateTable() {
 	r := p.Require()
 	ddl := `CREATE TABLE "users" (
-"id" SERIAL PRIMARY KEY,
+"id" SERIAL NOT NULL,
+PRIMARY KEY("id"),
 "first_name" VARCHAR (255) NOT NULL,
 "last_name" VARCHAR (255) NOT NULL,
 "email" VARCHAR (20) NOT NULL,
@@ -70,7 +71,8 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable_UUID() {
 "email" VARCHAR (20) NOT NULL,
 "permissions" jsonb,
 "age" integer DEFAULT '40',
-"uuid" UUID PRIMARY KEY,
+"uuid" UUID NOT NULL,
+PRIMARY KEY("uuid"),
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL
 );COMMIT TRANSACTION;BEGIN TRANSACTION;`
@@ -91,19 +93,21 @@ func (p *CockroachSuite) Test_Cockroach_CreateTable_UUID() {
 func (p *CockroachSuite) Test_Cockroach_CreateTables_WithForeignKeys() {
 	r := p.Require()
 	ddl := `CREATE TABLE "users" (
-"id" SERIAL PRIMARY KEY,
+"id" SERIAL NOT NULL,
+PRIMARY KEY("id"),
 "email" VARCHAR (20) NOT NULL,
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL
 );COMMIT TRANSACTION;BEGIN TRANSACTION;
 CREATE TABLE "profiles" (
-"id" SERIAL PRIMARY KEY,
+"id" SERIAL NOT NULL,
+PRIMARY KEY("id"),
 "user_id" INT NOT NULL,
 "first_name" VARCHAR (255) NOT NULL,
 "last_name" VARCHAR (255) NOT NULL,
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL,
-CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id)
+CONSTRAINT "profiles_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
 );COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`
@@ -117,6 +121,26 @@ CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id)
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.ForeignKey("user_id", {"users": ["id"]}, {})
+	}
+	`, p.crdbt())
+	r.Equal(ddl, res)
+}
+
+func (p *CockroachSuite) Test_Cockroach_CreateTables_WithCompositePrimaryKey() {
+	r := p.Require()
+	ddl := `CREATE TABLE "user_profiles" (
+"user_id" INT NOT NULL,
+"profile_id" INT NOT NULL,
+"created_at" timestamp NOT NULL,
+"updated_at" timestamp NOT NULL,
+PRIMARY KEY("user_id", "profile_id")
+);COMMIT TRANSACTION;BEGIN TRANSACTION;`
+
+	res, _ := fizz.AString(`
+	create_table("user_profiles") {
+		t.Column("user_id", "INT")
+		t.Column("profile_id", "INT")
+		t.PrimaryKey("user_id", "profile_id")
 	}
 	`, p.crdbt())
 	r.Equal(ddl, res)
@@ -246,7 +270,7 @@ func (p *CockroachSuite) buildSchema() translators.Schema {
 func (p *CockroachSuite) Test_Cockroach_AddForeignKey() {
 	r := p.Require()
 
-	ddl := `ALTER TABLE profiles ADD CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id);COMMIT TRANSACTION;BEGIN TRANSACTION;`
+	ddl := `ALTER TABLE "profiles" ADD CONSTRAINT "profiles_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "users" ("id");COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`add_foreign_key("profiles", "user_id", {"users": ["id"]}, {})`, p.crdbt())
 	r.Equal(ddl, res)
@@ -255,8 +279,27 @@ func (p *CockroachSuite) Test_Cockroach_AddForeignKey() {
 func (p *CockroachSuite) Test_Cockroach_DropForeignKey() {
 	r := p.Require()
 
-	ddl := `ALTER TABLE profiles DROP CONSTRAINT  profiles_users_id_fk;COMMIT TRANSACTION;BEGIN TRANSACTION;`
+	ddl := `ALTER TABLE "profiles" DROP CONSTRAINT "profiles_users_id_fk";COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`drop_foreign_key("profiles", "profiles_users_id_fk", {})`, p.crdbt())
+	r.Equal(ddl, res)
+}
+
+func (p *CockroachSuite) Test_Cockroach_CreateTable_With_DefaultRaw_Value_In_Primary_Field() {
+	r := p.Require()
+	ddl := `CREATE TABLE "test_cockroach_createtable_with_default_value_in_primary_field" (
+"primary_field" UUID NOT NULL DEFAULT gen_random_uuid(),
+PRIMARY KEY("primary_field"),
+"normal_field" UUID NOT NULL DEFAULT gen_random_uuid(),
+"created_at" timestamp NOT NULL,
+"updated_at" timestamp NOT NULL
+);COMMIT TRANSACTION;BEGIN TRANSACTION;`
+
+	res, _ := fizz.AString(`
+	create_table("test_cockroach_createtable_with_default_value_in_primary_field") {
+		t.Column("primary_field", "uuid", {"primary": true, default_raw: "gen_random_uuid()"})
+		t.Column("normal_field", "uuid", {default_raw: "gen_random_uuid()"})
+	}
+	`, p.crdbt())
 	r.Equal(ddl, res)
 }

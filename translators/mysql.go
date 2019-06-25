@@ -39,6 +39,15 @@ func (p *MySQL) CreateTable(t fizz.Table) (string, error) {
 		cols = append(cols, p.buildForeignKey(t, fk, true))
 	}
 
+	primaryKeys := t.PrimaryKeys()
+	if len(primaryKeys) > 1 {
+		pks := make([]string, len(primaryKeys))
+		for i, pk := range primaryKeys {
+			pks[i] = fmt.Sprintf("`%s`", pk)
+		}
+		cols = append(cols, fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(pks, ", ")))
+	}
+
 	s := fmt.Sprintf("CREATE TABLE %s (\n%s\n) ENGINE=InnoDB;", p.escapeIdentifier(t.Name), strings.Join(cols, ",\n"))
 	sql = append(sql, s)
 
@@ -188,10 +197,10 @@ func (p *MySQL) DropForeignKey(t fizz.Table) (string, error) {
 
 	var ifExists string
 	if v, ok := fk.Options["if_exists"]; ok && v.(bool) {
-		ifExists = "IF EXISTS"
+		ifExists = "IF EXISTS "
 	}
 
-	s := fmt.Sprintf("ALTER TABLE %s DROP FOREIGN KEY %s `%s`;", p.escapeIdentifier(t.Name), ifExists, fk.Name)
+	s := fmt.Sprintf("ALTER TABLE %s DROP FOREIGN KEY %s`%s`;", p.escapeIdentifier(t.Name), ifExists, fk.Name)
 	return s, nil
 }
 
@@ -274,7 +283,7 @@ func (p *MySQL) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bool)
 	return s
 }
 
-func (p *MySQL) escapeIdentifier(s string) string {
+func (MySQL) escapeIdentifier(s string) string {
 	if !strings.ContainsRune(s, '.') {
 		return fmt.Sprintf("`%s`", s)
 	}

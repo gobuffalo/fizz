@@ -53,3 +53,10 @@ func TestSpecificSuites(t *testing.T) {
 
 	suite.Run(t, &SchemaSuite{})
 }
+
+func getEnv(key, defaultValue string) string {
+	if v, found := os.LookupEnv(key); found {
+		return v
+	}
+	return defaultValue
+}

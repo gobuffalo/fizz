@@ -116,6 +116,26 @@ ALTER TABLE profiles ADD CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) R
 	r.Equal(ddl, res)
 }
 
+func (p *MsSqlServerSQLSuite) Test_MsSqlServer_CreateTables_WithCompositePrimaryKey() {
+	r := p.Require()
+	ddl := `CREATE TABLE user_profiles (
+user_id INT NOT NULL,
+profile_id INT NOT NULL,
+created_at DATETIME NOT NULL,
+updated_at DATETIME NOT NULL
+PRIMARY KEY([user_id], [profile_id])
+);`
+
+	res, _ := fizz.AString(`
+	create_table("user_profiles") {
+		t.Column("user_id", "INT")
+		t.Column("profile_id", "INT")
+		t.PrimaryKey("user_id", "profile_id")
+	}
+	`, sqlsrv)
+	r.Equal(ddl, res)
+}
+
 func (p *MsSqlServerSQLSuite) Test_MsSqlServer_DropTable() {
 	r := p.Require()
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql" // Load MySQL Go driver
-	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 )
@@ -14,7 +13,7 @@ var myt = translators.NewMySQL("", "")
 
 func init() {
 	u := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
-	u = fmt.Sprintf(u, envy.Get("MYSQL_USER", "root"), envy.Get("MYSQL_PASSWORD", "root"), envy.Get("MYSQL_HOST", "127.0.0.1"), envy.Get("MYSQL_PORT", "3306"), "pop_test", "utf8_general_ci")
+	u = fmt.Sprintf(u, getEnv("MYSQL_USER", "root"), getEnv("MYSQL_PASSWORD", "root"), getEnv("MYSQL_HOST", "127.0.0.1"), getEnv("MYSQL_PORT", "3306"), "pop_test", "utf8_general_ci")
 	myt = translators.NewMySQL(u, "pop_test")
 }
 
@@ -140,6 +139,26 @@ FOREIGN KEY (` + "`user_id`" + `) REFERENCES ` + "`users`" + ` (` + "`id`" + `)
 	}
 	`, myt)
 	r.NoError(err)
+	r.Equal(ddl, res)
+}
+
+func (p *MySQLSuite) Test_MySQL_CreateTables_WithCompositePrimaryKey() {
+	r := p.Require()
+	ddl := `CREATE TABLE ` + "`user_profiles`" + ` (
+` + "`user_id`" + ` INTEGER NOT NULL,
+` + "`profile_id`" + ` INTEGER NOT NULL,
+` + "`created_at`" + ` DATETIME NOT NULL,
+` + "`updated_at`" + ` DATETIME NOT NULL,
+PRIMARY KEY(` + "`user_id`" + `, ` + "`profile_id`" + `)
+) ENGINE=InnoDB;`
+
+	res, _ := fizz.AString(`
+	create_table("user_profiles") {
+		t.Column("user_id", "INT")
+		t.Column("profile_id", "INT")
+		t.PrimaryKey("user_id", "profile_id")
+	}
+	`, myt)
 	r.Equal(ddl, res)
 }
 
@@ -295,7 +314,7 @@ func (p *MySQLSuite) Test_MySQL_AddForeignKey() {
 
 func (p *MySQLSuite) Test_MySQL_DropForeignKey() {
 	r := p.Require()
-	ddl := `ALTER TABLE ` + "`profiles`" + ` DROP FOREIGN KEY  ` + "`profiles_users_id_fk`" + `;`
+	ddl := `ALTER TABLE ` + "`profiles`" + ` DROP FOREIGN KEY ` + "`profiles_users_id_fk`" + `;`
 
 	res, err := fizz.AString(`drop_foreign_key("profiles", "profiles_users_id_fk", {})`, myt)
 	r.NoError(err)

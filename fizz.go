@@ -45,8 +45,8 @@ func (f fizzer) Exec(out io.Writer) func(string) error {
 	}
 }
 
-// AFile reads a fizz file, and translates its contents to SQL.
-func AFile(f *os.File, t Translator) (string, error) {
+// AFile reads in a fizz migration from an io.Reader and translates its contents to SQL.
+func AFile(f io.Reader, t Translator) (string, error) {
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
 		return "", err

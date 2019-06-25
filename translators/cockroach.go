@@ -32,20 +32,29 @@ func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 		if c.Primary {
 			switch c.ColType {
 			case "string", "uuid":
-				s = fmt.Sprintf("\"%s\" %s PRIMARY KEY", c.Name, p.colType(c))
-			case "integer", "int", "INT":
-				s = fmt.Sprintf("\"%s\" SERIAL PRIMARY KEY", c.Name)
+			case "integer", "INT", "int":
+				c.ColType = "SERIAL"
 			default:
 				return "", fmt.Errorf("can not use %s as a primary key", c.ColType)
 			}
-		} else {
-			s = p.buildAddColumn(c)
 		}
-		cols = append(cols, s)
+		cols = append(cols, p.buildAddColumn(c))
+		if c.Primary {
+			cols = append(cols, fmt.Sprintf(`PRIMARY KEY("%s")`, c.Name))
+		}
 	}
 
 	for _, fk := range t.ForeignKeys {
 		cols = append(cols, p.buildForeignKey(t, fk, true))
+	}
+
+	primaryKeys := t.PrimaryKeys()
+	if len(primaryKeys) > 1 {
+		pks := make([]string, len(primaryKeys))
+		for i, pk := range primaryKeys {
+			pks[i] = fmt.Sprintf("\"%s\"", pk)
+		}
+		cols = append(cols, fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(pks, ", ")))
 	}
 
 	s = fmt.Sprintf("CREATE TABLE \"%s\" (\n%s\n);COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, strings.Join(cols, ",\n"))
@@ -248,7 +257,7 @@ func (p *Cockroach) RenameIndex(t fizz.Table) (string, error) {
 
 func (p *Cockroach) AddForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", fmt.Errorf("Not enough foreign keys supplied!")
+		return "", fmt.Errorf("not enough foreign keys supplied")
 	}
 
 	tableInfo, err := p.Schema.TableInfo(t.Name)
@@ -262,7 +271,7 @@ func (p *Cockroach) AddForeignKey(t fizz.Table) (string, error) {
 
 func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", fmt.Errorf("Not enough foreign keys supplied!")
+		return "", fmt.Errorf("not enough foreign keys supplied")
 	}
 
 	fk := t.ForeignKeys[0]
@@ -281,17 +290,17 @@ func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
 
 	var ifExists string
 	if v, ok := fk.Options["if_exists"]; ok && v.(bool) {
-		ifExists = "IF EXISTS"
+		ifExists = "IF EXISTS "
 	}
 
-	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, ifExists, fk.Name)
+	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s\"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", p.escapeIdentifier(t.Name), ifExists, fk.Name)
 	return s, nil
 }
 
 func (p *Cockroach) buildAddColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 
-	if c.Options["null"] == nil {
+	if c.Options["null"] == nil || c.Primary {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
 	if c.Options["default"] != nil {
@@ -392,12 +401,27 @@ func (p *Cockroach) colType(c fizz.Column) string {
 }
 
 func (p *Cockroach) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bool) string {
-	refs := fmt.Sprintf("%s (%s)", fk.References.Table, strings.Join(fk.References.Columns, ", "))
-	s := fmt.Sprintf("CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s", fk.Name, fk.Column, refs)
+	rcols := []string{}
+	for _, c := range fk.References.Columns {
+		rcols = append(rcols, fmt.Sprintf("\"%s\"", c))
+	}
+	refs := fmt.Sprintf("%s (%s)", p.escapeIdentifier(fk.References.Table), strings.Join(rcols, ", "))
+	s := fmt.Sprintf("CONSTRAINT \"%s\" FOREIGN KEY (\"%s\") REFERENCES %s", fk.Name, fk.Column, refs)
 
 	if !onCreate {
-		s = fmt.Sprintf("ALTER TABLE %s ADD %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, s)
+		s = fmt.Sprintf("ALTER TABLE %s ADD %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", p.escapeIdentifier(t.Name), s)
 	}
 
 	return s
+}
+
+func (Cockroach) escapeIdentifier(s string) string {
+	if !strings.ContainsRune(s, '.') {
+		return fmt.Sprintf("\"%s\"", s)
+	}
+	parts := strings.Split(s, ".")
+	for _, p := range parts {
+		p = fmt.Sprintf("\"%s\"", p)
+	}
+	return strings.Join(parts, ".")
 }

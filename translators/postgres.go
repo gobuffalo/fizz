@@ -40,6 +40,15 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 		cols = append(cols, p.buildForeignKey(t, fk, true))
 	}
 
+	primaryKeys := t.PrimaryKeys()
+	if len(primaryKeys) > 1 {
+		pks := make([]string, len(primaryKeys))
+		for i, pk := range primaryKeys {
+			pks[i] = fmt.Sprintf("\"%s\"", pk)
+		}
+		cols = append(cols, fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(pks, ", ")))
+	}
+
 	s = fmt.Sprintf("CREATE TABLE \"%s\" (\n%s\n);", t.Name, strings.Join(cols, ",\n"))
 	sql = append(sql, s)
 
@@ -136,7 +145,7 @@ func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
 
 func (p *Postgres) AddForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", fmt.Errorf("Not enough foreign keys supplied!")
+		return "", fmt.Errorf("not enough foreign keys supplied")
 	}
 
 	return p.buildForeignKey(t, t.ForeignKeys[0], false), nil
@@ -144,17 +153,17 @@ func (p *Postgres) AddForeignKey(t fizz.Table) (string, error) {
 
 func (p *Postgres) DropForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", fmt.Errorf("Not enough foreign keys supplied!")
+		return "", fmt.Errorf("not enough foreign keys supplied")
 	}
 
 	fk := t.ForeignKeys[0]
 
 	var ifExists string
 	if v, ok := fk.Options["if_exists"]; ok && v.(bool) {
-		ifExists = "IF EXISTS"
+		ifExists = "IF EXISTS "
 	}
 
-	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s %s;", t.Name, ifExists, fk.Name)
+	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s\"%s\";", p.escapeIdentifier(t.Name), ifExists, fk.Name)
 	return s, nil
 }
 
@@ -207,7 +216,7 @@ func (p *Postgres) colType(c fizz.Column) string {
 	case "uuid":
 		return "UUID"
 	case "time", "datetime":
-		return "timestamp"
+		return "timestamptz"
 	case "blob", "[]byte":
 		return "bytea"
 	case "float", "decimal":
@@ -235,8 +244,12 @@ func (p *Postgres) colType(c fizz.Column) string {
 }
 
 func (p *Postgres) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bool) string {
-	refs := fmt.Sprintf("%s (%s)", fk.References.Table, strings.Join(fk.References.Columns, ", "))
-	s := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s", fk.Column, refs)
+	rcols := []string{}
+	for _, c := range fk.References.Columns {
+		rcols = append(rcols, fmt.Sprintf("\"%s\"", c))
+	}
+	refs := fmt.Sprintf("%s (%s)", p.escapeIdentifier(fk.References.Table), strings.Join(rcols, ", "))
+	s := fmt.Sprintf("FOREIGN KEY (\"%s\") REFERENCES %s", fk.Column, refs)
 
 	if onUpdate, ok := fk.Options["on_update"]; ok {
 		s += fmt.Sprintf(" ON UPDATE %s", onUpdate)
@@ -247,8 +260,19 @@ func (p *Postgres) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bo
 	}
 
 	if !onCreate {
-		s = fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s %s;", t.Name, fk.Name, s)
+		s = fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT \"%s\" %s;", p.escapeIdentifier(t.Name), fk.Name, s)
 	}
 
 	return s
+}
+
+func (Postgres) escapeIdentifier(s string) string {
+	if !strings.ContainsRune(s, '.') {
+		return fmt.Sprintf("\"%s\"", s)
+	}
+	parts := strings.Split(s, ".")
+	for _, p := range parts {
+		p = fmt.Sprintf("\"%s\"", p)
+	}
+	return strings.Join(parts, ".")
 }

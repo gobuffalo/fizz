@@ -3,7 +3,6 @@ package translators_test
 import (
 	"fmt"
 
-	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
 )
@@ -13,7 +12,7 @@ var mat = translators.NewMariaDB("", "")
 
 func init() {
 	u := "%s:%s@(%s:%s)/%s?parseTime=true&multiStatements=true&readTimeout=1s&collation=%s"
-	u = fmt.Sprintf(u, envy.Get("MYSQL_USER", "root"), envy.Get("MYSQL_PASSWORD", ""), envy.Get("MYSQL_HOST", "127.0.0.1"), envy.Get("MYSQL_PORT", "3306"), "pop_test", "utf8mb4_general_ci")
+	u = fmt.Sprintf(u, getEnv("MYSQL_USER", "root"), getEnv("MYSQL_PASSWORD", ""), getEnv("MYSQL_HOST", "127.0.0.1"), getEnv("MYSQL_PORT", "3306"), "pop_test", "utf8mb4_general_ci")
 	mat = translators.NewMariaDB(u, "pop_test")
 }
 
