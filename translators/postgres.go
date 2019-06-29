@@ -115,7 +115,7 @@ func (p *Postgres) RenameColumn(t fizz.Table) (string, error) {
 
 func (p *Postgres) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", fmt.Errorf("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("CREATE INDEX \"%s\" ON \"%s\" (%s);", i.Name, t.Name, strings.Join(i.Columns, ", "))
@@ -127,7 +127,7 @@ func (p *Postgres) AddIndex(t fizz.Table) (string, error) {
 
 func (p *Postgres) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", fmt.Errorf("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	return fmt.Sprintf("DROP INDEX \"%s\";", i.Name), nil
@@ -136,7 +136,7 @@ func (p *Postgres) DropIndex(t fizz.Table) (string, error) {
 func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
 	ix := t.Indexes
 	if len(ix) < 2 {
-		return "", fmt.Errorf("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	oi := ix[0]
 	ni := ix[1]

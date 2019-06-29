@@ -83,7 +83,7 @@ func (p *SQLite) DropTable(t fizz.Table) (string, error) {
 
 func (p *SQLite) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
-		return "", fmt.Errorf("Not enough table names supplied!")
+		return "", fmt.Errorf("not enough table names supplied")
 	}
 	oldName := t[0].Name
 	newName := t[1].Name
@@ -262,7 +262,7 @@ func (p *SQLite) RenameColumn(t fizz.Table) (string, error) {
 
 func (p *SQLite) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", fmt.Errorf("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("CREATE INDEX \"%s\" ON \"%s\" (%s);", i.Name, t.Name, strings.Join(i.Columns, ", "))
@@ -280,7 +280,7 @@ func (p *SQLite) AddIndex(t fizz.Table) (string, error) {
 
 func (p *SQLite) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", fmt.Errorf("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("DROP INDEX IF EXISTS \"%s\";", i.Name)
@@ -302,7 +302,7 @@ func (p *SQLite) DropIndex(t fizz.Table) (string, error) {
 
 func (p *SQLite) RenameIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) < 2 {
-		return "", fmt.Errorf("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 
 	tableInfo, err := p.Schema.TableInfo(t.Name)
