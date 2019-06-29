@@ -3,12 +3,12 @@ package fizz
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/gobuffalo/plush"
-	"github.com/pkg/errors"
 )
 
 // Table is the table definition for fizz.
@@ -127,7 +127,7 @@ func (t *Table) Column(name string, colType string, options Options) error {
 func (t *Table) ForeignKey(column string, refs interface{}, options Options) error {
 	fkr, err := parseForeignKeyRef(refs)
 	if err != nil {
-		return errors.Wrap(err, "could not parse foreign key")
+		return err
 	}
 	fk := ForeignKey{
 		Column:     column,
@@ -150,17 +150,17 @@ func (t *Table) Index(columns interface{}, options Options) error {
 	i := Index{}
 	switch tp := columns.(type) {
 	default:
-		return errors.Errorf("unexpected type %T for %s index columns", tp, t.Name) // %T prints whatever type t has
+		return fmt.Errorf("unexpected type %T for %s index columns", tp, t.Name) // %T prints whatever type t has
 	case string:
 		i.Columns = []string{tp}
 	case []string:
 		if len(tp) == 0 {
-			return errors.Errorf("expected at least one column to apply %s index", t.Name)
+			return fmt.Errorf("expected at least one column to apply %s index", t.Name)
 		}
 		i.Columns = tp
 	case []interface{}:
 		if len(tp) == 0 {
-			return errors.Errorf("expected at least one column to apply %s index", t.Name)
+			return fmt.Errorf("expected at least one column to apply %s index", t.Name)
 		}
 		cl := make([]string, len(tp))
 		for i, c := range tp {
@@ -264,7 +264,7 @@ func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush
 		ctx := help.Context.New()
 		ctx.Set("t", &t)
 		if _, err := help.BlockWith(ctx); err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 	}
 

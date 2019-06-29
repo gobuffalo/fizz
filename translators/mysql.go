@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/pkg/errors"
 )
 
 // MySQL is a MySQL-specific translator.
@@ -72,14 +71,14 @@ func (p *MySQL) DropTable(t fizz.Table) (string, error) {
 
 func (p *MySQL) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
-		return "", errors.New("not enough table names supplied")
+		return "", fmt.Errorf("not enough table names supplied")
 	}
 	return fmt.Sprintf("ALTER TABLE %s RENAME TO %s;", p.escapeIdentifier(t[0].Name), p.escapeIdentifier(t[1].Name)), nil
 }
 
 func (p *MySQL) ChangeColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	s := fmt.Sprintf("ALTER TABLE %s MODIFY %s;", p.escapeIdentifier(t.Name), p.buildColumn(c))
@@ -88,7 +87,7 @@ func (p *MySQL) ChangeColumn(t fizz.Table) (string, error) {
 
 func (p *MySQL) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 
 	if _, ok := t.Columns[0].Options["first"]; ok {
@@ -110,7 +109,7 @@ func (p *MySQL) AddColumn(t fizz.Table) (string, error) {
 
 func (p *MySQL) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	return fmt.Sprintf("ALTER TABLE %s DROP COLUMN `%s`;", p.escapeIdentifier(t.Name), c.Name), nil
@@ -118,7 +117,7 @@ func (p *MySQL) DropColumn(t fizz.Table) (string, error) {
 
 func (p *MySQL) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	oc := t.Columns[0]
 	nc := t.Columns[1]
@@ -141,7 +140,7 @@ func (p *MySQL) RenameColumn(t fizz.Table) (string, error) {
 
 func (p *MySQL) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("not enough indexes supplied")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	cols := []string{}
@@ -157,7 +156,7 @@ func (p *MySQL) AddIndex(t fizz.Table) (string, error) {
 
 func (p *MySQL) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("not enough indexes supplied")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	return fmt.Sprintf("DROP INDEX `%s` ON %s;", i.Name, p.escapeIdentifier(t.Name)), nil
@@ -167,14 +166,14 @@ func (p *MySQL) RenameIndex(t fizz.Table) (string, error) {
 	schema := p.Schema.(*mysqlSchema)
 	version, err := schema.Version()
 	if err != nil {
-		return "", errors.WithStack(err)
+		return "", err
 	}
 	if version.LT(mysql57Version) {
-		return "", errors.New("renaming indexes on MySQL versions less than 5.7 is not supported by fizz; use raw SQL instead")
+		return "", fmt.Errorf("renaming indexes on MySQL versions less than 5.7 is not supported by fizz; use raw SQL instead")
 	}
 	ix := t.Indexes
 	if len(ix) < 2 {
-		return "", errors.New("not enough indexes supplied")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	oi := ix[0]
 	ni := ix[1]
@@ -183,7 +182,7 @@ func (p *MySQL) RenameIndex(t fizz.Table) (string, error) {
 
 func (p *MySQL) AddForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("not enough foreign keys supplied")
+		return "", fmt.Errorf("not enough foreign keys supplied")
 	}
 
 	return p.buildForeignKey(t, t.ForeignKeys[0], false), nil
@@ -191,7 +190,7 @@ func (p *MySQL) AddForeignKey(t fizz.Table) (string, error) {
 
 func (p *MySQL) DropForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("not enough foreign keys supplied")
+		return "", fmt.Errorf("not enough foreign keys supplied")
 	}
 
 	fk := t.ForeignKeys[0]

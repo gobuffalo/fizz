@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/pkg/errors"
 )
 
 type SQLite struct {
@@ -39,7 +38,7 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 			case "uuid", "string":
 				s = fmt.Sprintf("\"%s\" TEXT PRIMARY KEY", c.Name)
 			default:
-				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
+				return "", fmt.Errorf("can not use %s as a primary key", c.ColType)
 			}
 		} else {
 			s = p.buildColumn(c)
@@ -84,7 +83,7 @@ func (p *SQLite) DropTable(t fizz.Table) (string, error) {
 
 func (p *SQLite) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
-		return "", errors.New("Not enough table names supplied!")
+		return "", fmt.Errorf("not enough table names supplied")
 	}
 	oldName := t[0].Name
 	newName := t[1].Name
@@ -133,7 +132,7 @@ func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
 
 func (p *SQLite) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 
@@ -150,7 +149,7 @@ func (p *SQLite) AddColumn(t fizz.Table) (string, error) {
 
 func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 1 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 
 	tableInfo, err := p.Schema.TableInfo(t.Name)
@@ -206,7 +205,7 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 
 func (p *SQLite) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 
 	tableInfo, err := p.Schema.TableInfo(t.Name)
@@ -263,7 +262,7 @@ func (p *SQLite) RenameColumn(t fizz.Table) (string, error) {
 
 func (p *SQLite) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("CREATE INDEX \"%s\" ON \"%s\" (%s);", i.Name, t.Name, strings.Join(i.Columns, ", "))
@@ -281,7 +280,7 @@ func (p *SQLite) AddIndex(t fizz.Table) (string, error) {
 
 func (p *SQLite) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("DROP INDEX IF EXISTS \"%s\";", i.Name)
@@ -303,7 +302,7 @@ func (p *SQLite) DropIndex(t fizz.Table) (string, error) {
 
 func (p *SQLite) RenameIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) < 2 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 
 	tableInfo, err := p.Schema.TableInfo(t.Name)
@@ -350,11 +349,11 @@ func (p *SQLite) RenameIndex(t fizz.Table) (string, error) {
 }
 
 func (p *SQLite) AddForeignKey(t fizz.Table) (string, error) {
-	return "", errors.New("SQLite does not support this feature")
+	return "", fmt.Errorf("SQLite does not support this feature")
 }
 
 func (p *SQLite) DropForeignKey(t fizz.Table) (string, error) {
-	return "", errors.New("SQLite does not support this feature")
+	return "", fmt.Errorf("SQLite does not support this feature")
 }
 
 func (p *SQLite) withTempTable(table string, fn func(fizz.Table) (string, error)) (string, error) {
