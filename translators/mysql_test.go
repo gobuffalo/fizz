@@ -49,7 +49,12 @@ PRIMARY KEY(` + "`id`" + `),
 ` + "`age`" + ` INTEGER DEFAULT 40,
 ` + "`raw`" + ` BLOB NOT NULL,
 ` + "`json`" + ` JSON NOT NULL,
-` + "`float`" + ` FLOAT(5) NOT NULL,
+` + "`float`" + ` FLOAT NOT NULL,
+` + "`float_noscale`" + ` FLOAT(5) NOT NULL,
+` + "`float_scale`" + ` FLOAT(5,2) NOT NULL,
+` + "`decimal`" + ` DECIMAL(6,2) NOT NULL,
+` + "`numeric`" + ` NUMERIC(7,2) NOT NULL,
+` + "`double`" + ` DOUBLE(8,2) NOT NULL,
 ` + "`integer`" + ` INTEGER NOT NULL,
 ` + "`bytes`" + ` BLOB NOT NULL,
 ` + "`created_at`" + ` DATETIME NOT NULL,
@@ -66,7 +71,12 @@ PRIMARY KEY(` + "`id`" + `),
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("raw", "blob", {})
 		t.Column("json", "json", {})
-		t.Column("float", "float", {"precision": 5})
+		t.Column("float", "float")
+		t.Column("float_noscale", "float", {"precision": 5})
+		t.Column("float_scale", "float", {"precision": 5,"scale":2})
+		t.Column("decimal", "decimal", {"precision": 6,"scale":2})
+		t.Column("numeric", "numeric", {"precision": 7,"scale":2})
+		t.Column("double", "double", {"precision": 8,"scale":2})
 		t.Column("integer", "integer", {})
 		t.Column("bytes", "[]byte", {})
 	}
