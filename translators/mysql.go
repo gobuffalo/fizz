@@ -252,9 +252,9 @@ func (p *MySQL) colType(c fizz.Column) string {
 			precision := c.Options["precision"]
 			if c.Options["scale"] != nil {
 				scale := c.Options["scale"]
-				return fmt.Sprintf("%s(%d,%d)",colType, precision, scale)
+				return fmt.Sprintf("%s(%d,%d)", colType, precision, scale)
 			}
-			return fmt.Sprintf("%s(%d)",colType, precision)
+			return fmt.Sprintf("%s(%d)", colType, precision)
 		}
 
 		return colType
