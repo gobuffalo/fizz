@@ -129,7 +129,7 @@ func (t *Table) Column(name string, colType string, options Options) error {
 	} else {
 		t.Columns = append(t.Columns, c)
 	}
-	if (name == "created_at" || name == "updated_at") && colType != "time" {
+	if (name == "created_at" || name == "updated_at") && colType != "timestamp" {
 		// timestamp macro only works for time type
 		t.useTimestampMacro = false
 	}

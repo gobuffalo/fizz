@@ -111,6 +111,22 @@ func Test_Table_StringerAutoDisableTimestamps(t *testing.T) {
 	r.NoError(table.Column("created_at", "int", nil))
 
 	r.Equal(expected, table.String())
+
+	// timestamp columns provided but same as default
+	expected =
+		`create_table("users") {
+	t.Column("name", "string")
+	t.Timestamps()
+}`
+
+	table = fizz.NewTable("users", map[string]interface{}{
+		"timestamps": true,
+	})
+	r.NoError(table.Column("name", "string", nil))
+	r.NoError(table.Column("created_at", "timestamp", nil))
+	r.NoError(table.Column("updated_at", "timestamp", nil))
+
+	r.Equal(expected, table.String())
 }
 
 func Test_Table_StringerIndex(t *testing.T) {
