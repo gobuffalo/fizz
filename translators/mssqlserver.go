@@ -15,6 +15,10 @@ func NewMsSqlServer() *MsSqlServer {
 	return &MsSqlServer{}
 }
 
+func (MsSqlServer) Name() string {
+	return "mssqlserver"
+}
+
 func (p *MsSqlServer) CreateTable(t fizz.Table) (string, error) {
 	sql := []string{}
 	cols := []string{}

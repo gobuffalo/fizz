@@ -24,6 +24,10 @@ func NewMySQL(url, name string) *MySQL {
 	}
 }
 
+func (MySQL) Name() string {
+	return "mysql"
+}
+
 // CreateTable translates a fizz Table to its MySQL SQL definition.
 func (p *MySQL) CreateTable(t fizz.Table) (string, error) {
 	sql := []string{}

@@ -14,6 +14,10 @@ func NewPostgres() *Postgres {
 	return &Postgres{}
 }
 
+func (Postgres) Name() string {
+	return "postgres"
+}
+
 func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 	sql := []string{}
 	cols := []string{}

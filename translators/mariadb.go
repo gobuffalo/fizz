@@ -13,3 +13,7 @@ func NewMariaDB(url, name string) *MariaDB {
 		MySQL: md,
 	}
 }
+
+func (MariaDB) Name() string {
+	return "mariadb"
+}

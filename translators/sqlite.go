@@ -24,6 +24,10 @@ func NewSQLite(url string) *SQLite {
 	}
 }
 
+func (SQLite) Name() string {
+	return "sqlite3"
+}
+
 func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 	p.Schema.SetTable(&t)
 

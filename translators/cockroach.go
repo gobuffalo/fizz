@@ -23,6 +23,10 @@ func NewCockroach(url string, name string) *Cockroach {
 	return &Cockroach{Schema: schema}
 }
 
+func (Cockroach) Name() string {
+	return "cockroach"
+}
+
 func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 	p.Schema.SetTable(&t)
 	sql := []string{}
