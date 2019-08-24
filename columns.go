@@ -23,8 +23,8 @@ var UUID_ID_COL = Column{
 	Options: Options{},
 }
 
-var CREATED_COL = Column{Name: "created_at", ColType: "timestamp", Options: Options{}}
-var UPDATED_COL = Column{Name: "updated_at", ColType: "timestamp", Options: Options{}}
+var CREATED_COL = Column{Name: "created_at", ColType: "timestamp", Options: nil}
+var UPDATED_COL = Column{Name: "updated_at", ColType: "timestamp", Options: nil}
 
 type Column struct {
 	Name    string

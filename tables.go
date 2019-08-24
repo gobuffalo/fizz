@@ -13,13 +13,14 @@ import (
 
 // Table is the table definition for fizz.
 type Table struct {
-	Name         string `db:"name"`
-	Columns      []Column
-	Indexes      []Index
-	ForeignKeys  []ForeignKey
-	primaryKeys  []string
-	Options      map[string]interface{}
-	columnsCache map[string]struct{}
+	Name              string `db:"name"`
+	Columns           []Column
+	Indexes           []Index
+	ForeignKeys       []ForeignKey
+	primaryKeys       []string
+	Options           map[string]interface{}
+	columnsCache      map[string]struct{}
+	useTimestampMacro bool
 }
 
 func (t Table) String() string {
@@ -47,7 +48,7 @@ func (t Table) Fizz() string {
 		buff.WriteString(fmt.Sprintf("create_table(\"%s\") {\n", t.Name))
 	}
 	// Write columns
-	if timestampsOpt {
+	if t.useTimestampMacro {
 		for _, c := range t.Columns {
 			if c.Name == "created_at" || c.Name == "updated_at" {
 				continue
@@ -59,8 +60,16 @@ func (t Table) Fizz() string {
 			buff.WriteString(fmt.Sprintf("\t%s\n", c.String()))
 		}
 	}
-	if timestampsOpt {
+	if t.useTimestampMacro {
 		buff.WriteString("\tt.Timestamps()\n")
+	} else if timestampsOpt {
+		// Missing timestamp columns will only be added on fizz execution, so we need to consider them as present.
+		if !t.HasColumns("created_at") {
+			buff.WriteString(fmt.Sprintf("\t%s\n", CREATED_COL.String()))
+		}
+		if !t.HasColumns("updated_at") {
+			buff.WriteString(fmt.Sprintf("\t%s\n", UPDATED_COL.String()))
+		}
 	}
 	// Write primary key (single column pk will be written in inline form as the column opt)
 	if len(t.primaryKeys) > 1 {
@@ -119,6 +128,10 @@ func (t *Table) Column(name string, colType string, options Options) error {
 		t.Columns = append([]Column{c}, t.Columns...)
 	} else {
 		t.Columns = append(t.Columns, c)
+	}
+	if (name == "created_at" || name == "updated_at") && colType != "time" {
+		// timestamp macro only works for time type
+		t.useTimestampMacro = false
 	}
 	return nil
 }
@@ -250,11 +263,12 @@ func NewTable(name string, opts map[string]interface{}) Table {
 		opts["timestamps"] = true
 	}
 	return Table{
-		Name:         name,
-		Columns:      []Column{},
-		Indexes:      []Index{},
-		Options:      opts,
-		columnsCache: map[string]struct{}{},
+		Name:              name,
+		Columns:           []Column{},
+		Indexes:           []Index{},
+		Options:           opts,
+		columnsCache:      map[string]struct{}{},
+		useTimestampMacro: opts["timestamps"].(bool),
 	}
 }
 
@@ -270,7 +284,8 @@ func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush
 
 	if t.Options["timestamps"].(bool) {
 		if !t.HasColumns("created_at", "updated_at") {
-			t.Timestamps()
+			t.Timestamp("created_at")
+			t.Timestamp("updated_at")
 		}
 	}
 

@@ -76,6 +76,43 @@ func Test_Table_StringerOpts(t *testing.T) {
 	r.Equal(expected, table.String())
 }
 
+func Test_Table_StringerAutoDisableTimestamps(t *testing.T) {
+	r := require.New(t)
+
+	// Custom type timestamps
+	expected :=
+		`create_table("users") {
+	t.Column("name", "string")
+	t.Column("created_at", "int")
+	t.Column("updated_at", "int")
+}`
+
+	table := fizz.NewTable("users", map[string]interface{}{
+		"timestamps": true,
+	})
+	r.NoError(table.Column("name", "string", nil))
+	r.NoError(table.Column("created_at", "int", nil))
+	r.NoError(table.Column("updated_at", "int", nil))
+
+	r.Equal(expected, table.String())
+
+	// only one timestamp override
+	expected =
+		`create_table("users") {
+	t.Column("name", "string")
+	t.Column("created_at", "int")
+	t.Column("updated_at", "timestamp")
+}`
+
+	table = fizz.NewTable("users", map[string]interface{}{
+		"timestamps": true,
+	})
+	r.NoError(table.Column("name", "string", nil))
+	r.NoError(table.Column("created_at", "int", nil))
+
+	r.Equal(expected, table.String())
+}
+
 func Test_Table_StringerIndex(t *testing.T) {
 	r := require.New(t)
 
