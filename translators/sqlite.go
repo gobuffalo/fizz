@@ -375,7 +375,7 @@ func (p *SQLite) withTempTable(table string, fn func(fizz.Table) (string, error)
 
 func (p *SQLite) buildColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
-	if c.Options["null"] == nil {
+	if c.Options["null"] != true {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
 	if c.Options["default"] != nil {

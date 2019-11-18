@@ -210,7 +210,7 @@ func (p *MySQL) DropForeignKey(t fizz.Table) (string, error) {
 
 func (p *MySQL) buildColumn(c fizz.Column) string {
 	s := fmt.Sprintf("`%s` %s", c.Name, p.colType(c))
-	if c.Options["null"] == nil || c.Primary {
+	if c.Options["null"] != true || c.Primary {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
 	if c.Options["default"] != nil {
