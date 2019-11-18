@@ -51,7 +51,7 @@ PRIMARY KEY("id"),
 	create_table("users") {
 		t.Column("id", "integer", {"primary": true})
 		t.Column("first_name", "string", {})
-		t.Column("last_name", "string", {})
+		t.Column("last_name", "string", {"null": false})
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "jsonb", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
@@ -80,7 +80,7 @@ PRIMARY KEY("uuid"),
 	res, _ := fizz.AString(`
 	create_table("users") {
 		t.Column("first_name", "string", {})
-		t.Column("last_name", "string", {})
+		t.Column("last_name", "string", {"null": false})
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "jsonb", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
@@ -119,7 +119,7 @@ CONSTRAINT "profiles_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "users" ("i
 		t.Column("id", "INT", {"primary": true})
 		t.Column("user_id", "INT", {})
 		t.Column("first_name", "string", {})
-		t.Column("last_name", "string", {})
+		t.Column("last_name", "string", {"null": false})
 		t.ForeignKey("user_id", {"users": ["id"]}, {})
 	}
 	`, p.crdbt())

@@ -82,7 +82,7 @@ func (p *MsSqlServer) ChangeColumn(t fizz.Table) (string, error) {
 
 	cmds := make([]string, 0)
 	s := fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s %s", t.Name, c.Name, p.colType(c))
-	if c.Options["null"] == nil {
+	if c.Options["null"] != true {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	} else {
 		s = fmt.Sprintf("%s NULL", s)
@@ -197,7 +197,7 @@ func (p *MsSqlServer) DropForeignKey(t fizz.Table) (string, error) {
 
 func (p *MsSqlServer) buildAddColumn(tableName string, c fizz.Column) string {
 	s := fmt.Sprintf("%s %s", c.Name, p.colType(c))
-	if c.Options["null"] == nil {
+	if c.Options["null"] != true {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
 	setDefault := c.Options["default"] != nil || c.Options["default_raw"] != nil
