@@ -412,6 +412,14 @@ func (p *Cockroach) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate b
 	refs := fmt.Sprintf("%s (%s)", p.escapeIdentifier(fk.References.Table), strings.Join(rcols, ", "))
 	s := fmt.Sprintf("CONSTRAINT \"%s\" FOREIGN KEY (\"%s\") REFERENCES %s", fk.Name, fk.Column, refs)
 
+	if onUpdate, ok := fk.Options["on_update"]; ok {
+		s += fmt.Sprintf(" ON UPDATE %s", onUpdate)
+	}
+
+	if onDelete, ok := fk.Options["on_delete"]; ok {
+		s += fmt.Sprintf(" ON DELETE %s", onDelete)
+	}
+
 	if !onCreate {
 		s = fmt.Sprintf("ALTER TABLE %s ADD %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", p.escapeIdentifier(t.Name), s)
 	}

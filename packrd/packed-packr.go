@@ -24,7 +24,7 @@ var _ = func() error {
 	func() {
 		b := packr.New("github.com/gobuffalo/helpers/genny/docs/templates", "../docs/templates")
 		b.SetResolver("README.md.plush", packr.Pointer{ForwardBox: gk, ForwardPath: "219f70cdf30f6f12b6c726d0cb3c36b8"})
-		}()
+	}()
 
 	return nil
 }()
