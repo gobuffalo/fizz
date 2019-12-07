@@ -261,7 +261,7 @@ func (p *SQLiteSuite) Test_SQLite_AddIndex() {
 	schema.schema["table_name"] = &fizz.Table{
 		Name: "table_name",
 		Columns: []fizz.Column{
-			fizz.Column{
+			{
 				Name: "column_name",
 			},
 		},
@@ -303,7 +303,7 @@ func (p *SQLiteSuite) Test_SQLite_DropIndex() {
 	schema.schema["my_table"] = &fizz.Table{
 		Name: "my_table",
 		Indexes: []fizz.Index{
-			fizz.Index{
+			{
 				Name: "my_idx",
 			},
 		},
