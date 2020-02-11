@@ -3,7 +3,7 @@ module github.com/gobuffalo/fizz
 go 1.12
 
 require (
-	github.com/Masterminds/semver v1.5.0
+	github.com/Masterminds/semver/v3 v3.0.3
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gobuffalo/envy v1.7.1 // indirect
 	github.com/gobuffalo/helpers v0.2.4 // indirect
