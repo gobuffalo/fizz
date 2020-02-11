@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/blang/semver"
+	"github.com/Masterminds/semver"
 	"github.com/gobuffalo/fizz"
 )
 
