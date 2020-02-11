@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/blang/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/gobuffalo/fizz"
 )
 
@@ -42,26 +42,29 @@ type mysqlSchema struct {
 }
 
 func (p *mysqlSchema) Version() (*semver.Version, error) {
-	var version *semver.Version
 	var err error
 
 	db, err := sql.Open("mysql", p.URL)
 	if err != nil {
-		return version, err
+		return nil, err
 	}
 	defer db.Close()
 
 	res, err := db.Query("SELECT VERSION()")
 	if err != nil {
-		return version, err
+		return nil, err
 	}
 	defer res.Close()
 
+	var rawVersion string
 	for res.Next() {
-		err = res.Scan(&version)
-		return version, err
+		err = res.Scan(&rawVersion)
+		if err != nil {
+			return nil, err
+		}
+		return semver.NewVersion(rawVersion)
 	}
-	return version, fmt.Errorf("could not fetch MySQL version")
+	return nil, fmt.Errorf("could not fetch MySQL version")
 }
 
 func (p *mysqlSchema) Build() error {

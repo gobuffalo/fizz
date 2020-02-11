@@ -172,7 +172,7 @@ func (p *MySQL) RenameIndex(t fizz.Table) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if version.LT(mysql57Version) {
+	if version.LessThan(mysql57Version) {
 		return "", fmt.Errorf("renaming indexes on MySQL versions less than 5.7 is not supported by fizz; use raw SQL instead")
 	}
 	ix := t.Indexes
