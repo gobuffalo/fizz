@@ -4,14 +4,14 @@ import (
 	"strings"
 )
 
-func (f fizzer) RawSQL(sql string) {
+func (f fizzer) RawSQL(sql string) error {
 	if !strings.HasSuffix(sql, ";") {
 		sql += ";"
 	}
-	f.add(sql, nil)
+	return f.add(sql, nil)
 }
 
 // Deprecated: use RawSQL instead.
-func (f fizzer) RawSql(sql string) {
-	f.RawSQL(sql)
+func (f fizzer) RawSql(sql string) error {
+	return f.RawSQL(sql)
 }

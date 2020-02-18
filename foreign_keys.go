@@ -54,15 +54,14 @@ func (f fizzer) AddForeignKey(table string, column string, refs interface{}, opt
 		fk.Name = fmt.Sprintf("%s_%s_%s_fk", table, fk.References.Table, strings.Join(fk.References.Columns, "_"))
 	}
 
-	f.add(f.Bubbler.AddForeignKey(Table{
+	return f.add(f.Bubbler.AddForeignKey(Table{
 		Name:        table,
 		ForeignKeys: []ForeignKey{fk},
 	}))
-	return nil
 }
 
-func (f fizzer) DropForeignKey(table string, fk string, options Options) {
-	f.add(f.Bubbler.DropForeignKey(Table{
+func (f fizzer) DropForeignKey(table string, fk string, options Options) error {
+	return f.add(f.Bubbler.DropForeignKey(Table{
 		Name: table,
 		ForeignKeys: []ForeignKey{
 			{

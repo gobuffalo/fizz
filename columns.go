@@ -56,34 +56,34 @@ func (c Column) String() string {
 	return fmt.Sprintf(`t.Column("%s", "%s")`, c.Name, c.ColType)
 }
 
-func (f fizzer) ChangeColumn(table, name, ctype string, options Options) {
+func (f fizzer) ChangeColumn(table, name, ctype string, options Options) error {
 	t := Table{
 		Name: table,
 		Columns: []Column{
 			{Name: name, ColType: ctype, Options: options},
 		},
 	}
-	f.add(f.Bubbler.ChangeColumn(t))
+	return f.add(f.Bubbler.ChangeColumn(t))
 }
 
-func (f fizzer) AddColumn(table, name, ctype string, options Options) {
+func (f fizzer) AddColumn(table, name, ctype string, options Options) error {
 	t := Table{
 		Name: table,
 		Columns: []Column{
 			{Name: name, ColType: ctype, Options: options},
 		},
 	}
-	f.add(f.Bubbler.AddColumn(t))
+	return f.add(f.Bubbler.AddColumn(t))
 }
 
-func (f fizzer) DropColumn(table, name string) {
+func (f fizzer) DropColumn(table, name string) error {
 	t := Table{
 		Name: table,
 		Columns: []Column{
 			{Name: name},
 		},
 	}
-	f.add(f.Bubbler.DropColumn(t))
+	return f.add(f.Bubbler.DropColumn(t))
 }
 
 func (f fizzer) RenameColumn(table, old, new string) error {
