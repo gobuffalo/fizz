@@ -25,15 +25,16 @@ jobs:
         env:
           GO111MODULE: "off"
         run: |
+          mkdir -p "$(HOME)/go/bin"
           go get -v -tags sqlite github.com/gobuffalo/soda
         shell: bash
       - name: Run soda
         env:
           SODA_DIALECT: "sqlite"
         run: |
-          $(GOBIN)/soda drop -e $SODA_DIALECT -p ./testdata/migrations
-          $(GOBIN)/soda create -e $SODA_DIALECT -p ./testdata/migrations
-          $(GOBIN)/soda migrate -e $SODA_DIALECT -p ./testdata/migrations
+          $(HOME)/go/bin/soda drop -e $SODA_DIALECT -p ./testdata/migrations
+          $(HOME)/go/bin/soda create -e $SODA_DIALECT -p ./testdata/migrations
+          $(HOME)/go/bin/soda migrate -e $SODA_DIALECT -p ./testdata/migrations
         shell: bash
       - name: Test
         env:
