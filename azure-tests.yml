@@ -42,14 +42,14 @@ steps:
     condition: and(succeeded(), eq(variables['SODA_DIALECT'], 'cockroach'))
   - task: Bash@3
     inputs:
-        targetType: inline
-        script: |
-          GO111MODULE=off go get -v -tags sqlite github.com/gobuffalo/pop/soda
+      targetType: inline
+      script: |
+        GO111MODULE=off go get -v -tags sqlite github.com/gobuffalo/pop/soda
     displayName: "Install soda"
   - script: |
       $(GOBIN)/soda create -e $(SODA_DIALECT)
       $(GOBIN)/soda migrate -e $(SODA_DIALECT)
-    workingDirectory: "$(modulePath)"         
+    workingDirectory: "$(modulePath)"
     displayName: "Create DB & run migrations"
   - script: |
       go get -t -v ./...
