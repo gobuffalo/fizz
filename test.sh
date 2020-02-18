@@ -14,7 +14,7 @@ fi
 function cleanup {
     echo "Cleanup resources..."
     docker-compose down
-    find ./sql_scripts/sqlite -name *.sqlite* -delete
+    find ./sql_scripts/sqlite -name *.sqlite* -delete || true
 }
 # defer cleanup, so it will be executed even after premature exit
 trap cleanup EXIT
