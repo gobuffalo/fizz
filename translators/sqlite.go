@@ -39,7 +39,7 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 			switch strings.ToLower(c.ColType) {
 			case "integer", "int":
 				s = fmt.Sprintf("\"%s\" INTEGER PRIMARY KEY AUTOINCREMENT", c.Name)
-			case "uuid", "string":
+			case "string", "text", "uuid":
 				s = fmt.Sprintf("\"%s\" TEXT PRIMARY KEY", c.Name)
 			default:
 				return "", fmt.Errorf("can not use %s as a primary key", c.ColType)
@@ -107,6 +107,7 @@ func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
 		return "", err
 	}
 
+	fmt.Printf("%+v - %+v", t, tableInfo.Indexes)
 	for i := range tableInfo.Columns {
 		if tableInfo.Columns[i].Name == t.Columns[0].Name {
 			tableInfo.Columns[i] = t.Columns[0]
