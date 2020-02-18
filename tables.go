@@ -30,7 +30,7 @@ func (t Table) String() string {
 // Fizz returns the fizz DDL to create the table.
 func (t Table) Fizz() string {
 	var buff bytes.Buffer
-	timestampsOpt := t.Options["timestamps"].(bool)
+	timestampsOpt, _ := t.Options["timestamps"].(bool)
 	// Write table options
 	o := make([]string, 0, len(t.Options))
 	for k, v := range t.Options {
@@ -149,7 +149,11 @@ func (t *Table) ForeignKey(column string, refs interface{}, options Options) err
 	}
 
 	if options["name"] != nil {
-		fk.Name = options["name"].(string)
+		var ok bool
+		fk.Name, ok = options["name"].(string)
+		if !ok {
+			return fmt.Errorf(`expected options field "name" to be of type "string" but got "%T"`, options["name"])
+		}
 	} else {
 		fk.Name = fmt.Sprintf("%s_%s_%s_fk", t.Name, fk.References.Table, strings.Join(fk.References.Columns, "_"))
 	}
@@ -177,16 +181,27 @@ func (t *Table) Index(columns interface{}, options Options) error {
 		}
 		cl := make([]string, len(tp))
 		for i, c := range tp {
-			cl[i] = c.(string)
+			var ok bool
+			cl[i], ok = c.(string)
+			if !ok {
+				return fmt.Errorf(`expected variable to be of type "string" but got "%T"`, c)
+			}
 		}
 		i.Columns = cl
 	}
 	if options["name"] != nil {
-		i.Name = options["name"].(string)
+		var ok bool
+		i.Name, ok = options["name"].(string)
+		if !ok {
+			return fmt.Errorf(`expected options field "name" to be of type "string" but got "%T"`, options["name"])
+		}
 	} else {
 		i.Name = fmt.Sprintf("%s_%s_idx", t.Name, strings.Join(i.Columns, "_"))
 	}
-	i.Unique = options["unique"] != nil && options["unique"].(bool)
+
+	unique, _ := options["unique"].(bool)
+	i.Unique = unique
+
 	t.Indexes = append(t.Indexes, i)
 	return nil
 }
@@ -262,13 +277,14 @@ func NewTable(name string, opts map[string]interface{}) Table {
 	if enabled, exists := opts["timestamps"]; !exists || enabled == true {
 		opts["timestamps"] = true
 	}
+	useTimestampMacro, _ := opts["timestamps"].(bool)
 	return Table{
 		Name:              name,
 		Columns:           []Column{},
 		Indexes:           []Index{},
 		Options:           opts,
 		columnsCache:      map[string]struct{}{},
-		useTimestampMacro: opts["timestamps"].(bool),
+		useTimestampMacro: useTimestampMacro,
 	}
 }
 
@@ -282,7 +298,7 @@ func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush
 		}
 	}
 
-	if t.Options["timestamps"].(bool) {
+	if ok, _ := t.Options["timestamps"].(bool); ok {
 		if !t.HasColumns("created_at", "updated_at") {
 			t.Timestamp("created_at")
 			t.Timestamp("updated_at")

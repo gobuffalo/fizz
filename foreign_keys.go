@@ -49,7 +49,11 @@ func (f fizzer) AddForeignKey(table string, column string, refs interface{}, opt
 	}
 
 	if options["name"] != nil {
-		fk.Name = options["name"].(string)
+		var ok bool
+		fk.Name, ok = options["name"].(string)
+		if !ok {
+			return fmt.Errorf(`expected options field "name" to be of type "string" but got "%T"`, options["name"])
+		}
 	} else {
 		fk.Name = fmt.Sprintf("%s_%s_%s_fk", table, fk.References.Table, strings.Join(fk.References.Columns, "_"))
 	}
