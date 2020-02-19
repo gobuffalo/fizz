@@ -283,10 +283,12 @@ func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush
 	}
 
 	if t.Options["timestamps"].(bool) {
-		if !t.HasColumns("created_at", "updated_at") {
+		if !t.HasColumns("created_at") {
 			if err := t.Timestamp("created_at"); err != nil {
 				return err
 			}
+		}
+		if !t.HasColumns("updated_at") {
 			if err := t.Timestamp("updated_at"); err != nil {
 				return err
 			}
