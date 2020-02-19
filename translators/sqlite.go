@@ -39,7 +39,7 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 			switch strings.ToLower(c.ColType) {
 			case "integer", "int":
 				s = fmt.Sprintf("\"%s\" INTEGER PRIMARY KEY AUTOINCREMENT", c.Name)
-			case "uuid", "string":
+			case "string", "text", "uuid":
 				s = fmt.Sprintf("\"%s\" TEXT PRIMARY KEY", c.Name)
 			default:
 				return "", fmt.Errorf("can not use %s as a primary key", c.ColType)
