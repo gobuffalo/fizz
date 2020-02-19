@@ -113,7 +113,7 @@ func (p *sqliteSchema) buildTableData(table *fizz.Table, db *sql.DB) error {
 func (p *sqliteSchema) buildTableIndexes(t *fizz.Table, db *sql.DB) error {
 	// This ignores all internal SQLite keys which are prefixed with `sqlite_` as explained here:
 	// https://www.sqlite.org/fileformat2.html#intschema
-	prag := fmt.Sprintf(`SELECT "seq", "name", "unique", "origin", "partial" FROM pragma_index_list('%s') WHERE "name" NOT LIKE 'sqlite%%'`, t.Name)
+	prag := fmt.Sprintf(`SELECT "seq", "name", "unique", "origin", "partial" FROM pragma_index_list('%s') WHERE "name" NOT LIKE 'sqlite_%%'`, t.Name)
 	res, err := db.Query(prag)
 	if err != nil {
 		return err
