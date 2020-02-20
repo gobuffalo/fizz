@@ -246,17 +246,18 @@ func (p *MySQL) colType(c fizz.Column) string {
 		return "BLOB"
 	case "int", "integer":
 		return "INTEGER"
-	case "float", "decimal":
+	case "float", "double", "decimal", "numeric":
+		colType := strings.ToUpper(c.ColType)
 		if c.Options["precision"] != nil {
 			precision := c.Options["precision"]
 			if c.Options["scale"] != nil {
 				scale := c.Options["scale"]
-				return fmt.Sprintf("FLOAT(%d,%d)", precision, scale)
+				return fmt.Sprintf("%s(%d,%d)", colType, precision, scale)
 			}
-			return fmt.Sprintf("FLOAT(%d)", precision)
+			return fmt.Sprintf("%s(%d)", colType, precision)
 		}
 
-		return "FLOAT"
+		return colType
 	case "json":
 		return "JSON"
 	default:
