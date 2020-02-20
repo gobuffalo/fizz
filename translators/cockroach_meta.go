@@ -118,7 +118,7 @@ func (p *cockroachSchema) buildTableData(table *fizz.Table, db *sql.DB) error {
 }
 
 func (p *cockroachSchema) buildTableIndexes(t *fizz.Table, db *sql.DB) error {
-	prag := fmt.Sprintf("SELECT distinct index_name as name, non_unique FROM information_schema.statistics where table_name = '%s';", t.Name)
+	prag := fmt.Sprintf("SELECT distinct index_name as name, (non_unique = 'YES') as non_unique FROM information_schema.statistics where table_name = '%s';", t.Name)
 	res, err := db.Query(prag)
 	if err != nil {
 		return err
