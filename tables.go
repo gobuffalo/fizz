@@ -298,23 +298,28 @@ func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush
 		}
 	}
 
-	if ok, _ := t.Options["timestamps"].(bool); ok {
-		if !t.HasColumns("created_at", "updated_at") {
-			t.Timestamp("created_at")
-			t.Timestamp("updated_at")
+	if t.Options["timestamps"].(bool) {
+		if !t.HasColumns("created_at") {
+			if err := t.Timestamp("created_at"); err != nil {
+				return err
+			}
+		}
+		if !t.HasColumns("updated_at") {
+			if err := t.Timestamp("updated_at"); err != nil {
+				return err
+			}
 		}
 	}
 
-	f.add(f.Bubbler.CreateTable(t))
-	return nil
+	return f.add(f.Bubbler.CreateTable(t))
 }
 
-func (f fizzer) DropTable(name string) {
-	f.add(f.Bubbler.DropTable(Table{Name: name}))
+func (f fizzer) DropTable(name string) error {
+	return f.add(f.Bubbler.DropTable(Table{Name: name}))
 }
 
-func (f fizzer) RenameTable(old, new string) {
-	f.add(f.Bubbler.RenameTable([]Table{
+func (f fizzer) RenameTable(old, new string) error {
+	return f.add(f.Bubbler.RenameTable([]Table{
 		{Name: old},
 		{Name: new},
 	}))

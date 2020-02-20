@@ -49,12 +49,11 @@ func (f fizzer) AddIndex(table string, columns interface{}, options Options) err
 	if err := t.Index(columns, options); err != nil {
 		return err
 	}
-	f.add(f.Bubbler.AddIndex(t))
-	return nil
+	return f.add(f.Bubbler.AddIndex(t))
 }
 
-func (f fizzer) DropIndex(table, name string) {
-	f.add(f.Bubbler.DropIndex(Table{
+func (f fizzer) DropIndex(table, name string) error {
+	return f.add(f.Bubbler.DropIndex(Table{
 		Name: table,
 		Indexes: []Index{
 			{Name: name},
@@ -62,8 +61,8 @@ func (f fizzer) DropIndex(table, name string) {
 	}))
 }
 
-func (f fizzer) RenameIndex(table, old, new string) {
-	f.add(f.Bubbler.RenameIndex(Table{
+func (f fizzer) RenameIndex(table, old, new string) error {
+	return f.add(f.Bubbler.RenameIndex(Table{
 		Name: table,
 		Indexes: []Index{
 			{Name: old},
