@@ -40,6 +40,7 @@ jobs:
       - name: Run soda
         env:
           SODA_DIALECT: "mysql"
+          MYSQL_PORT: 3307
         run: |
           $HOME/go/bin/soda drop -e $SODA_DIALECT -p ./testdata/migrations
           $HOME/go/bin/soda create -e $SODA_DIALECT -p ./testdata/migrations
