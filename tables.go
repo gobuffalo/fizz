@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/gobuffalo/plush"
+	"github.com/gobuffalo/plush/v4"
 )
 
 // Table is the table definition for fizz.
