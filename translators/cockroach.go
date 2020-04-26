@@ -153,6 +153,7 @@ func (p *Cockroach) AddColumn(t fizz.Table) (string, error) {
 		for i := range tableInfo.Columns {
 			if tableInfo.Columns[i].Name == c.Name {
 				tableInfo.Columns[i] = c
+				found = true
 				break
 			}
 		}
