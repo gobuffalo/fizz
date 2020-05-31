@@ -55,6 +55,8 @@ PRIMARY KEY(` + "`id`" + `),
 ` + "`decimal`" + ` DECIMAL(6,2) NOT NULL,
 ` + "`numeric`" + ` NUMERIC(7,2) NOT NULL,
 ` + "`double`" + ` DOUBLE(8,2) NOT NULL,
+` + "`datetime_size3`" + ` DATETIME(3) NOT NULL,
+` + "`datetime_nosize`" + ` DATETIME NOT NULL,
 ` + "`integer`" + ` INTEGER NOT NULL,
 ` + "`bytes`" + ` BLOB NOT NULL,
 ` + "`created_at`" + ` DATETIME NOT NULL,
@@ -77,6 +79,8 @@ PRIMARY KEY(` + "`id`" + `),
 		t.Column("decimal", "decimal", {"precision": 6,"scale":2})
 		t.Column("numeric", "numeric", {"precision": 7,"scale":2})
 		t.Column("double", "double", {"precision": 8,"scale":2})
+		t.Column("datetime_size3", "datetime", {"size": 3})
+		t.Column("datetime_nosize", "datetime")
 		t.Column("integer", "integer", {})
 		t.Column("bytes", "[]byte", {})
 	}

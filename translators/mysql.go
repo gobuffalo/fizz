@@ -241,7 +241,11 @@ func (p *MySQL) colType(c fizz.Column) string {
 	case "uuid":
 		return "char(36)"
 	case "timestamp", "time", "datetime":
-		return "DATETIME"
+		if c.Options["size"] != nil {
+			return fmt.Sprintf("DATETIME(%d)", c.Options["size"])
+		} else {
+			return "DATETIME"
+		}
 	case "blob", "[]byte":
 		return "BLOB"
 	case "int", "integer":
