@@ -47,7 +47,7 @@ type cockroachSchema struct {
 
 func (p *cockroachSchema) Build() error {
 	var err error
-	db, err := sql.Open("postgres", p.URL)
+	db, err := sql.Open("pgx", p.URL)
 	if err != nil {
 		return err
 	}
