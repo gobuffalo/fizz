@@ -1,0 +1,13 @@
+create_table("e2e_user_notes") {
+    t.Column("id", "uuid", {"primary": true})
+    t.Column("notes", "string", {"null": true})
+    t.Column("title", "string", {"size": 64, "default": ""})
+
+    t.Column("user_id", "uuid")
+    t.ForeignKey("user_id", {"e2e_users": ["id"]}, {"on_delete": "cascade"})
+
+    t.DisableTimestamps()
+}
+
+add_index("e2e_user_notes", "user_id", {"name": "e2e_user_notes_user_id_idx"})
+add_index("e2e_user_notes", "title", {"name": "e2e_user_notes_title_idx"})

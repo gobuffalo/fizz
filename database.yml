@@ -32,4 +32,6 @@ sqlserver:
 sqlite:
   dialect: "sqlite3"
   database: "./sql_scripts/sqlite/test.sqlite"
+  options:
+    mode: rwc
 

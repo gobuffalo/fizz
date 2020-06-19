@@ -262,7 +262,15 @@ func (t *Table) ColumnNames() []string {
 func (t *Table) HasColumns(args ...string) bool {
 	for _, a := range args {
 		if _, ok := t.columnsCache[a]; !ok {
-			return false
+			// Just because the cache couldn't find the column doesn't mean it's not there.
+			// Let's see if it really doesn't exist!
+			var found bool
+			for _, name := range t.ColumnNames() {
+				if found = name == a; found {
+					break
+				}
+			}
+			return found
 		}
 	}
 	return true

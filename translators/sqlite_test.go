@@ -340,3 +340,50 @@ CREATE UNIQUE INDEX "new_ix" ON "users" (id, created_at);`
 	res, _ := fizz.AString(`rename_index("users", "old_ix", "new_ix")`, sqt)
 	r.Equal(ddl, res)
 }
+
+func (p *SQLiteSuite) Test_SQLite_DropColumnWithForeignKey() {
+	r := p.Require()
+
+	res, _ := fizz.AString(`
+	create_table("users") {
+		t.Column("uuid", "uuid", {"primary": true})
+	}
+
+	create_table("user_notes") {
+		t.Column("uuid", "uuid", {"primary": true})
+		t.Column("user_id", "uuid")
+		t.Column("notes", "string")
+    	t.ForeignKey("user_id", {"users": ["uuid"]}, {"on_delete": "cascade"})
+	}`, sqt)
+	r.Equal(`CREATE TABLE "users" (
+"uuid" TEXT PRIMARY KEY,
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL
+);
+CREATE TABLE "user_notes" (
+"uuid" TEXT PRIMARY KEY,
+"user_id" char(36) NOT NULL,
+"notes" TEXT NOT NULL,
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL,
+FOREIGN KEY (user_id) REFERENCES users (uuid) ON DELETE cascade
+);`, res)
+
+	res, _ = fizz.AString(`drop_column("user_notes","notes")`, sqt)
+	r.Equal(`ALTER TABLE "user_notes" RENAME TO "_user_notes_tmp";
+CREATE TABLE "user_notes" (
+"uuid" TEXT PRIMARY KEY,
+"user_id" char(36) NOT NULL,
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL,
+FOREIGN KEY (user_id) REFERENCES users (uuid) ON DELETE cascade
+);
+INSERT INTO "user_notes" (uuid, user_id, created_at, updated_at) SELECT uuid, user_id, created_at, updated_at FROM "_user_notes_tmp";
+DROP TABLE "_user_notes_tmp";`, res)
+
+	res, _ = fizz.AString(`rename_table("users","user_accounts")`, sqt)
+	r.Equal(`ALTER TABLE "users" RENAME TO "user_accounts";`, res)
+
+	res, _ = fizz.AString(`add_column("user_notes","notes","string")`, sqt)
+	r.Equal(`ALTER TABLE "user_notes" ADD COLUMN "notes" TEXT NOT NULL;`, res)
+}

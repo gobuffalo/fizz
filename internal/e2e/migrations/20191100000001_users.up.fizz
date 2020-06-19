@@ -1,0 +1,3 @@
+create_table("e2e_users") {
+    t.Column("id", "uuid", {"primary": true})
+}
