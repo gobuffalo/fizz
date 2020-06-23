@@ -1,0 +1,1 @@
+drop_table("e2e_user_notes")

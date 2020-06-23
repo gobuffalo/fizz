@@ -16,6 +16,17 @@ type sqliteIndexListInfo struct {
 	Partial string `db:"partial"`
 }
 
+type sqliteForeignKeyListInfo struct {
+	ID       int    `db:"id"`
+	Seq      int    `db:"seq"`
+	From     string `db:"from"`
+	To       string `db:"to"`
+	Table    string `db:"table"`
+	OnUpdate string `db:"on_update"`
+	OnDelete string `db:"on_delete"`
+	Match    string `db:"match"`
+}
+
 type sqliteIndexInfo struct {
 	Seq  int    `db:"seqno"`
 	CID  int    `db:"cid"`
@@ -106,6 +117,10 @@ func (p *sqliteSchema) buildTableData(table *fizz.Table, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+	err = p.buildTableForeignKeyIndexes(table, db)
+	if err != nil {
+		return err
+	}
 	p.schema[table.Name] = table
 	return nil
 }
@@ -152,5 +167,48 @@ func (p *sqliteSchema) buildTableIndexes(t *fizz.Table, db *sql.DB) error {
 		t.Indexes = append(t.Indexes, i)
 
 	}
+	return nil
+}
+
+func (p *sqliteSchema) buildTableForeignKeyIndexes(t *fizz.Table, db *sql.DB) error {
+	// This ignores all internal SQLite keys which are prefixed with `sqlite_` as explained here:
+	// https://www.sqlite.org/fileformat2.html#intschema
+	prag := fmt.Sprintf(`SELECT "seq", "table", "from", "to", "on_update", "on_delete", "match" FROM pragma_foreign_key_list('%s')`, t.Name)
+	res, err := db.Query(prag)
+	if err != nil {
+		return err
+	}
+	defer res.Close()
+
+	foreignKeys := []fizz.ForeignKey{}
+	for res.Next() {
+		li := sqliteForeignKeyListInfo{}
+		err = res.Scan(&li.Seq, &li.Table, &li.From, &li.To, &li.OnUpdate, &li.OnDelete, &li.Match)
+		if err != nil {
+			return err
+		}
+
+		options := map[string]interface{}{}
+		if li.OnDelete != "" {
+			options["on_delete"] = li.OnDelete
+		}
+
+		if li.OnUpdate != "" {
+			options["on_update"] = li.OnUpdate
+		}
+
+		i := fizz.ForeignKey{
+			Column: li.From,
+			References: fizz.ForeignKeyRef{
+				Table:   li.Table,
+				Columns: []string{li.To},
+			},
+			Options: options,
+		}
+		i.Name = fmt.Sprintf("%s_%s_%s_fk", t.Name, i.References.Table, strings.Join(i.References.Columns, "_"))
+
+		foreignKeys = append(foreignKeys, i)
+	}
+	t.ForeignKeys = foreignKeys
 	return nil
 }

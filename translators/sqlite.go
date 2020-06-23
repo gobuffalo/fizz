@@ -116,13 +116,25 @@ func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
 
 	sql := []string{}
 	s, err := p.withTempTable(t.Name, func(tempTable fizz.Table) (string, error) {
+		var indices []string
+		for _, i := range tableInfo.Indexes {
+			s, err := p.DropIndex(fizz.Table{
+				Name:    tableInfo.Name,
+				Indexes: []fizz.Index{i},
+			})
+			if err != nil {
+				return "", err
+			}
+			indices = append(indices, s)
+		}
+
 		createTableSQL, err := p.CreateTable(*tableInfo)
 		if err != nil {
 			return "", err
 		}
 
 		ins := fmt.Sprintf("INSERT INTO \"%s\" (%s) SELECT %s FROM \"%s\";", t.Name, strings.Join(tableInfo.ColumnNames(), ", "), strings.Join(tableInfo.ColumnNames(), ", "), tempTable.Name)
-		return strings.Join([]string{createTableSQL, ins}, "\n"), nil
+		return strings.Join(append(indices, createTableSQL, ins), "\n"), nil
 	})
 
 	if err != nil {
@@ -187,6 +199,14 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 		}
 	}
 	tableInfo.Indexes = newIndexes
+
+	newForeignKeys := []fizz.ForeignKey{}
+	for _, i := range tableInfo.ForeignKeys {
+		if tableInfo.HasColumns(i.Column) {
+			newForeignKeys = append(newForeignKeys, i)
+		}
+	}
+	tableInfo.ForeignKeys = newForeignKeys
 
 	s, err := p.withTempTable(t.Name, func(tempTable fizz.Table) (string, error) {
 		createTableSQL, err := p.CreateTable(*tableInfo)

@@ -34,10 +34,17 @@ function test {
   soda create -e $SODA_DIALECT
   soda migrate -e $SODA_DIALECT -p ./testdata/migrations
   go test -tags sqlite -count=1 $verbose $(go list ./... | grep -v /vendor/)
+  echo "!!! Resetting $1"
+  soda drop -e $SODA_DIALECT
+  soda create -e $SODA_DIALECT
+  echo "!!! Running e2e tests $1"
+  go test -tags sqlite,e2e -count=1 $verbose ./internal/e2e
 }
 
+test "sqlite"
 test "postgres"
 test "cockroach"
 test "mysql"
-test "sqlserver"
-test "sqlite"
+
+# Does not appear to be implemented in pop:
+# test "sqlserver"

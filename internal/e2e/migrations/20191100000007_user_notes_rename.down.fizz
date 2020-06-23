@@ -1,0 +1,1 @@
+rename_table("e2e_user_posts","e2e_user_notes")

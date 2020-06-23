@@ -6,10 +6,11 @@ require (
 	github.com/Masterminds/semver/v3 v3.0.3
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gobuffalo/plush/v4 v4.0.0
+	github.com/gobuffalo/pop/v5 v5.2.0
+	github.com/jackc/pgx/v4 v4.6.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
-	github.com/kr/pretty v0.2.0 // indirect
-	github.com/stretchr/testify v1.4.0
-	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7 // indirect
-	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gopkg.in/yaml.v2 v2.2.8 // indirect
+	github.com/stretchr/testify v1.5.1
+	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9 // indirect
+	golang.org/x/text v0.3.3 // indirect
+	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
 )

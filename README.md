@@ -197,3 +197,20 @@ Sometimes during a migration you need to shell out to an external command.
 ```javascript
 exec("echo hello")
 ```
+
+## Development
+
+### Testing
+
+To run end-to-end tests, use
+
+```
+make test
+```
+
+If you made changes to the end-to-end tests and want to update the fixtures,
+run:
+
+```
+REFRESH_FIXTURES=true make test
+```
