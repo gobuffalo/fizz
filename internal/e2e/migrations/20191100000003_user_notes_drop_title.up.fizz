@@ -1,0 +1,1 @@
+drop_column("e2e_user_notes", "title")

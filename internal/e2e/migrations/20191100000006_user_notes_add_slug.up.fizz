@@ -1,0 +1,2 @@
+change_column("e2e_user_notes", "slug", "string", { "size": 64 })
+add_index("e2e_user_notes", "slug", { "unique":true, "name": "e2e_user_notes_slug_idx"})

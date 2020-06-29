@@ -21,7 +21,7 @@ func (p *CockroachSuite) crdbt() *translators.Cockroach {
 	ta.Column("mycolumn", "type", nil)
 	schema["mytable"] = ta
 	ta = &fizz.Table{Name: "table"}
-	ta.Indexes = []fizz.Index{fizz.Index{Name: "old_ix"}}
+	ta.Indexes = []fizz.Index{{Name: "old_ix"}}
 	schema["table"] = ta
 	ta = &fizz.Table{Name: "profiles"}
 	schema["profiles"] = ta
@@ -107,7 +107,7 @@ PRIMARY KEY("id"),
 "last_name" VARCHAR (255) NOT NULL,
 "created_at" timestamp NOT NULL,
 "updated_at" timestamp NOT NULL,
-CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id)
+CONSTRAINT "profiles_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON UPDATE CASCADE ON DELETE SET NULL
 );COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`
@@ -120,7 +120,7 @@ CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id)
 		t.Column("user_id", "INT", {})
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
-		t.ForeignKey("user_id", {"users": ["id"]}, {})
+		t.ForeignKey("user_id", {"users": ["id"]}, {"on_delete": "SET NULL", "on_update":"CASCADE"})
 	}
 	`, p.crdbt())
 	r.Equal(ddl, res)
@@ -270,7 +270,7 @@ func (p *CockroachSuite) buildSchema() translators.Schema {
 func (p *CockroachSuite) Test_Cockroach_AddForeignKey() {
 	r := p.Require()
 
-	ddl := `ALTER TABLE profiles ADD CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id);COMMIT TRANSACTION;BEGIN TRANSACTION;`
+	ddl := `ALTER TABLE "profiles" ADD CONSTRAINT "profiles_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "users" ("id");COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`add_foreign_key("profiles", "user_id", {"users": ["id"]}, {})`, p.crdbt())
 	r.Equal(ddl, res)
@@ -279,7 +279,7 @@ func (p *CockroachSuite) Test_Cockroach_AddForeignKey() {
 func (p *CockroachSuite) Test_Cockroach_DropForeignKey() {
 	r := p.Require()
 
-	ddl := `ALTER TABLE profiles DROP CONSTRAINT  profiles_users_id_fk;COMMIT TRANSACTION;BEGIN TRANSACTION;`
+	ddl := `ALTER TABLE "profiles" DROP CONSTRAINT "profiles_users_id_fk";COMMIT TRANSACTION;BEGIN TRANSACTION;`
 
 	res, _ := fizz.AString(`drop_foreign_key("profiles", "profiles_users_id_fk", {})`, p.crdbt())
 	r.Equal(ddl, res)

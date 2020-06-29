@@ -1,0 +1,1 @@
+sql("UPDATE e2e_user_notes SET slug='';")

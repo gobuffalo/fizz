@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/blang/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/gobuffalo/fizz"
-	"github.com/pkg/errors"
 )
 
 var mysql57Version = semver.MustParse("5.7.0")
@@ -43,38 +42,41 @@ type mysqlSchema struct {
 }
 
 func (p *mysqlSchema) Version() (*semver.Version, error) {
-	var version *semver.Version
 	var err error
 
 	db, err := sql.Open("mysql", p.URL)
 	if err != nil {
-		return version, errors.WithMessage(err, "could not fetch MySQL version")
+		return nil, err
 	}
 	defer db.Close()
 
 	res, err := db.Query("SELECT VERSION()")
 	if err != nil {
-		return version, errors.WithMessage(err, "could not fetch MySQL version")
+		return nil, err
 	}
 	defer res.Close()
 
+	var rawVersion string
 	for res.Next() {
-		err = res.Scan(&version)
-		return version, errors.WithMessage(err, "could not fetch MySQL version")
+		err = res.Scan(&rawVersion)
+		if err != nil {
+			return nil, err
+		}
+		return semver.NewVersion(rawVersion)
 	}
-	return version, errors.New("could not fetch MySQL version")
+	return nil, fmt.Errorf("could not fetch MySQL version")
 }
 
 func (p *mysqlSchema) Build() error {
 	db, err := sql.Open("mysql", p.URL)
 	if err != nil {
-		return errors.WithMessage(err, "unable to retrieve schema")
+		return err
 	}
 	defer db.Close()
 
 	res, err := db.Query(fmt.Sprintf("select TABLE_NAME as name from information_schema.TABLES where TABLE_SCHEMA = '%s'", p.Name))
 	if err != nil {
-		return errors.WithMessage(err, "unable to retrieve schema")
+		return err
 	}
 	defer res.Close()
 
@@ -85,11 +87,11 @@ func (p *mysqlSchema) Build() error {
 		}
 		err = res.Scan(&table.Name)
 		if err != nil {
-			return errors.WithMessage(err, "unable to retrieve schema")
+			return err
 		}
 		err = p.buildTableData(table, db)
 		if err != nil {
-			return errors.WithMessage(err, "unable to retrieve schema")
+			return err
 		}
 	}
 	return nil

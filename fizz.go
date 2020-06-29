@@ -10,7 +10,6 @@ import (
 	"os/exec"
 
 	shellquote "github.com/kballard/go-shellquote"
-	"github.com/pkg/errors"
 )
 
 // Options is a generic map of options.
@@ -22,7 +21,7 @@ type fizzer struct {
 
 func (f fizzer) add(s string, err error) error {
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	f.Bubbler.data = append(f.Bubbler.data, s)
 	return nil
@@ -32,7 +31,7 @@ func (f fizzer) Exec(out io.Writer) func(string) error {
 	return func(s string) error {
 		args, err := shellquote.Split(s)
 		if err != nil {
-			return errors.Wrapf(err, "error parsing command: %s", s)
+			return err
 		}
 		cmd := exec.Command(args[0], args[1:]...)
 		cmd.Stdin = os.Stdin
@@ -40,17 +39,17 @@ func (f fizzer) Exec(out io.Writer) func(string) error {
 		cmd.Stderr = os.Stderr
 		err = cmd.Run()
 		if err != nil {
-			return errors.Wrapf(err, "error executing command: %s", s)
+			return err
 		}
 		return nil
 	}
 }
 
-// AFile reads a fizz file, and translates its contents to SQL.
-func AFile(f *os.File, t Translator) (string, error) {
+// AFile reads in a fizz migration from an io.Reader and translates its contents to SQL.
+func AFile(f io.Reader, t Translator) (string, error) {
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		return "", errors.WithStack(err)
+		return "", err
 	}
 	return AString(string(b), t)
 }

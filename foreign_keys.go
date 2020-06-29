@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 type ForeignKeyRef struct {
@@ -42,7 +40,7 @@ func (f ForeignKey) String() string {
 func (f fizzer) AddForeignKey(table string, column string, refs interface{}, options Options) error {
 	fkr, err := parseForeignKeyRef(refs)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	fk := ForeignKey{
 		Column:     column,
@@ -51,20 +49,23 @@ func (f fizzer) AddForeignKey(table string, column string, refs interface{}, opt
 	}
 
 	if options["name"] != nil {
-		fk.Name = options["name"].(string)
+		var ok bool
+		fk.Name, ok = options["name"].(string)
+		if !ok {
+			return fmt.Errorf(`expected options field "name" to be of type "string" but got "%T"`, options["name"])
+		}
 	} else {
 		fk.Name = fmt.Sprintf("%s_%s_%s_fk", table, fk.References.Table, strings.Join(fk.References.Columns, "_"))
 	}
 
-	f.add(f.Bubbler.AddForeignKey(Table{
+	return f.add(f.Bubbler.AddForeignKey(Table{
 		Name:        table,
 		ForeignKeys: []ForeignKey{fk},
 	}))
-	return nil
 }
 
-func (f fizzer) DropForeignKey(table string, fk string, options Options) {
-	f.add(f.Bubbler.DropForeignKey(Table{
+func (f fizzer) DropForeignKey(table string, fk string, options Options) error {
+	return f.add(f.Bubbler.DropForeignKey(Table{
 		Name: table,
 		ForeignKeys: []ForeignKey{
 			{
@@ -79,10 +80,10 @@ func parseForeignKeyRef(refs interface{}) (ForeignKeyRef, error) {
 	fkr := ForeignKeyRef{}
 	refMap, ok := refs.(map[string]interface{})
 	if !ok {
-		return fkr, errors.Errorf(`invalid references format %s\nmust be "{"table": ["colum1", "column2"]}"`, refs)
+		return fkr, fmt.Errorf(`invalid references format %s\nmust be "{"table": ["colum1", "column2"]}"`, refs)
 	}
 	if len(refMap) != 1 {
-		return fkr, errors.Errorf("only one table is supported as Foreign key reference")
+		return fkr, fmt.Errorf("only one table is supported as Foreign key reference")
 	}
 	for table, columns := range refMap {
 		fkr.Table = table

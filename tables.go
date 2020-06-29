@@ -3,23 +3,24 @@ package fizz
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 
-	"github.com/gobuffalo/plush"
-	"github.com/pkg/errors"
+	"github.com/gobuffalo/plush/v4"
 )
 
 // Table is the table definition for fizz.
 type Table struct {
-	Name         string `db:"name"`
-	Columns      []Column
-	Indexes      []Index
-	ForeignKeys  []ForeignKey
-	primaryKeys  []string
-	Options      map[string]interface{}
-	columnsCache map[string]struct{}
+	Name              string `db:"name"`
+	Columns           []Column
+	Indexes           []Index
+	ForeignKeys       []ForeignKey
+	primaryKeys       []string
+	Options           map[string]interface{}
+	columnsCache      map[string]struct{}
+	useTimestampMacro bool
 }
 
 func (t Table) String() string {
@@ -29,7 +30,7 @@ func (t Table) String() string {
 // Fizz returns the fizz DDL to create the table.
 func (t Table) Fizz() string {
 	var buff bytes.Buffer
-	timestampsOpt := t.Options["timestamps"].(bool)
+	timestampsOpt, _ := t.Options["timestamps"].(bool)
 	// Write table options
 	o := make([]string, 0, len(t.Options))
 	for k, v := range t.Options {
@@ -47,7 +48,7 @@ func (t Table) Fizz() string {
 		buff.WriteString(fmt.Sprintf("create_table(\"%s\") {\n", t.Name))
 	}
 	// Write columns
-	if timestampsOpt {
+	if t.useTimestampMacro {
 		for _, c := range t.Columns {
 			if c.Name == "created_at" || c.Name == "updated_at" {
 				continue
@@ -59,8 +60,16 @@ func (t Table) Fizz() string {
 			buff.WriteString(fmt.Sprintf("\t%s\n", c.String()))
 		}
 	}
-	if timestampsOpt {
+	if t.useTimestampMacro {
 		buff.WriteString("\tt.Timestamps()\n")
+	} else if timestampsOpt {
+		// Missing timestamp columns will only be added on fizz execution, so we need to consider them as present.
+		if !t.HasColumns("created_at") {
+			buff.WriteString(fmt.Sprintf("\t%s\n", CREATED_COL.String()))
+		}
+		if !t.HasColumns("updated_at") {
+			buff.WriteString(fmt.Sprintf("\t%s\n", UPDATED_COL.String()))
+		}
 	}
 	// Write primary key (single column pk will be written in inline form as the column opt)
 	if len(t.primaryKeys) > 1 {
@@ -120,6 +129,10 @@ func (t *Table) Column(name string, colType string, options Options) error {
 	} else {
 		t.Columns = append(t.Columns, c)
 	}
+	if (name == "created_at" || name == "updated_at") && colType != "timestamp" {
+		// timestamp macro only works for time type
+		t.useTimestampMacro = false
+	}
 	return nil
 }
 
@@ -127,7 +140,7 @@ func (t *Table) Column(name string, colType string, options Options) error {
 func (t *Table) ForeignKey(column string, refs interface{}, options Options) error {
 	fkr, err := parseForeignKeyRef(refs)
 	if err != nil {
-		return errors.Wrap(err, "could not parse foreign key")
+		return err
 	}
 	fk := ForeignKey{
 		Column:     column,
@@ -136,7 +149,11 @@ func (t *Table) ForeignKey(column string, refs interface{}, options Options) err
 	}
 
 	if options["name"] != nil {
-		fk.Name = options["name"].(string)
+		var ok bool
+		fk.Name, ok = options["name"].(string)
+		if !ok {
+			return fmt.Errorf(`expected options field "name" to be of type "string" but got "%T"`, options["name"])
+		}
 	} else {
 		fk.Name = fmt.Sprintf("%s_%s_%s_fk", t.Name, fk.References.Table, strings.Join(fk.References.Columns, "_"))
 	}
@@ -150,30 +167,41 @@ func (t *Table) Index(columns interface{}, options Options) error {
 	i := Index{}
 	switch tp := columns.(type) {
 	default:
-		return errors.Errorf("unexpected type %T for %s index columns", tp, t.Name) // %T prints whatever type t has
+		return fmt.Errorf("unexpected type %T for %s index columns", tp, t.Name) // %T prints whatever type t has
 	case string:
 		i.Columns = []string{tp}
 	case []string:
 		if len(tp) == 0 {
-			return errors.Errorf("expected at least one column to apply %s index", t.Name)
+			return fmt.Errorf("expected at least one column to apply %s index", t.Name)
 		}
 		i.Columns = tp
 	case []interface{}:
 		if len(tp) == 0 {
-			return errors.Errorf("expected at least one column to apply %s index", t.Name)
+			return fmt.Errorf("expected at least one column to apply %s index", t.Name)
 		}
 		cl := make([]string, len(tp))
 		for i, c := range tp {
-			cl[i] = c.(string)
+			var ok bool
+			cl[i], ok = c.(string)
+			if !ok {
+				return fmt.Errorf(`expected variable to be of type "string" but got "%T"`, c)
+			}
 		}
 		i.Columns = cl
 	}
 	if options["name"] != nil {
-		i.Name = options["name"].(string)
+		var ok bool
+		i.Name, ok = options["name"].(string)
+		if !ok {
+			return fmt.Errorf(`expected options field "name" to be of type "string" but got "%T"`, options["name"])
+		}
 	} else {
 		i.Name = fmt.Sprintf("%s_%s_idx", t.Name, strings.Join(i.Columns, "_"))
 	}
-	i.Unique = options["unique"] != nil && options["unique"].(bool)
+
+	unique, _ := options["unique"].(bool)
+	i.Unique = unique
+
 	t.Indexes = append(t.Indexes, i)
 	return nil
 }
@@ -234,7 +262,15 @@ func (t *Table) ColumnNames() []string {
 func (t *Table) HasColumns(args ...string) bool {
 	for _, a := range args {
 		if _, ok := t.columnsCache[a]; !ok {
-			return false
+			// Just because the cache couldn't find the column doesn't mean it's not there.
+			// Let's see if it really doesn't exist!
+			var found bool
+			for _, name := range t.ColumnNames() {
+				if found = name == a; found {
+					break
+				}
+			}
+			return found
 		}
 	}
 	return true
@@ -249,12 +285,14 @@ func NewTable(name string, opts map[string]interface{}) Table {
 	if enabled, exists := opts["timestamps"]; !exists || enabled == true {
 		opts["timestamps"] = true
 	}
+	useTimestampMacro, _ := opts["timestamps"].(bool)
 	return Table{
-		Name:         name,
-		Columns:      []Column{},
-		Indexes:      []Index{},
-		Options:      opts,
-		columnsCache: map[string]struct{}{},
+		Name:              name,
+		Columns:           []Column{},
+		Indexes:           []Index{},
+		Options:           opts,
+		columnsCache:      map[string]struct{}{},
+		useTimestampMacro: useTimestampMacro,
 	}
 }
 
@@ -264,26 +302,32 @@ func (f fizzer) CreateTable(name string, opts map[string]interface{}, help plush
 		ctx := help.Context.New()
 		ctx.Set("t", &t)
 		if _, err := help.BlockWith(ctx); err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 	}
 
 	if t.Options["timestamps"].(bool) {
-		if !t.HasColumns("created_at", "updated_at") {
-			t.Timestamps()
+		if !t.HasColumns("created_at") {
+			if err := t.Timestamp("created_at"); err != nil {
+				return err
+			}
+		}
+		if !t.HasColumns("updated_at") {
+			if err := t.Timestamp("updated_at"); err != nil {
+				return err
+			}
 		}
 	}
 
-	f.add(f.Bubbler.CreateTable(t))
-	return nil
+	return f.add(f.Bubbler.CreateTable(t))
 }
 
-func (f fizzer) DropTable(name string) {
-	f.add(f.Bubbler.DropTable(Table{Name: name}))
+func (f fizzer) DropTable(name string) error {
+	return f.add(f.Bubbler.DropTable(Table{Name: name}))
 }
 
-func (f fizzer) RenameTable(old, new string) {
-	f.add(f.Bubbler.RenameTable([]Table{
+func (f fizzer) RenameTable(old, new string) error {
+	return f.add(f.Bubbler.RenameTable([]Table{
 		{Name: old},
 		{Name: new},
 	}))

@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/pkg/errors"
 )
 
 type Postgres struct {
@@ -13,6 +12,10 @@ type Postgres struct {
 
 func NewPostgres() *Postgres {
 	return &Postgres{}
+}
+
+func (Postgres) Name() string {
+	return "postgres"
 }
 
 func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
@@ -28,7 +31,7 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 			case "bigint", "BIGINT":
 				c.ColType = "BIGSERIAL"
 			default:
-				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
+				return "", fmt.Errorf("can not use %s as a primary key", c.ColType)
 			}
 		}
 		cols = append(cols, p.buildAddColumn(c))
@@ -73,14 +76,14 @@ func (p *Postgres) DropTable(t fizz.Table) (string, error) {
 
 func (p *Postgres) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
-		return "", errors.New("not enough table names supplied")
+		return "", fmt.Errorf("not enough table names supplied")
 	}
 	return fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", t[0].Name, t[1].Name), nil
 }
 
 func (p *Postgres) ChangeColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	s := fmt.Sprintf("ALTER TABLE \"%s\" ALTER COLUMN %s;", t.Name, p.buildChangeColumn(c))
@@ -89,7 +92,7 @@ func (p *Postgres) ChangeColumn(t fizz.Table) (string, error) {
 
 func (p *Postgres) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", t.Name, p.buildAddColumn(c))
@@ -98,7 +101,7 @@ func (p *Postgres) AddColumn(t fizz.Table) (string, error) {
 
 func (p *Postgres) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	return fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";", t.Name, c.Name), nil
@@ -106,7 +109,7 @@ func (p *Postgres) DropColumn(t fizz.Table) (string, error) {
 
 func (p *Postgres) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	oc := t.Columns[0]
 	nc := t.Columns[1]
@@ -116,7 +119,7 @@ func (p *Postgres) RenameColumn(t fizz.Table) (string, error) {
 
 func (p *Postgres) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("CREATE INDEX \"%s\" ON \"%s\" (%s);", i.Name, t.Name, strings.Join(i.Columns, ", "))
@@ -128,7 +131,7 @@ func (p *Postgres) AddIndex(t fizz.Table) (string, error) {
 
 func (p *Postgres) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	return fmt.Sprintf("DROP INDEX \"%s\";", i.Name), nil
@@ -137,7 +140,7 @@ func (p *Postgres) DropIndex(t fizz.Table) (string, error) {
 func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
 	ix := t.Indexes
 	if len(ix) < 2 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	oi := ix[0]
 	ni := ix[1]
@@ -146,7 +149,7 @@ func (p *Postgres) RenameIndex(t fizz.Table) (string, error) {
 
 func (p *Postgres) AddForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("Not enough foreign keys supplied!")
+		return "", fmt.Errorf("not enough foreign keys supplied")
 	}
 
 	return p.buildForeignKey(t, t.ForeignKeys[0], false), nil
@@ -154,17 +157,17 @@ func (p *Postgres) AddForeignKey(t fizz.Table) (string, error) {
 
 func (p *Postgres) DropForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("Not enough foreign keys supplied!")
+		return "", fmt.Errorf("not enough foreign keys supplied")
 	}
 
 	fk := t.ForeignKeys[0]
 
 	var ifExists string
 	if v, ok := fk.Options["if_exists"]; ok && v.(bool) {
-		ifExists = "IF EXISTS"
+		ifExists = "IF EXISTS "
 	}
 
-	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s %s;", t.Name, ifExists, fk.Name)
+	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s\"%s\";", p.escapeIdentifier(t.Name), ifExists, fk.Name)
 	return s, nil
 }
 
@@ -245,8 +248,12 @@ func (p *Postgres) colType(c fizz.Column) string {
 }
 
 func (p *Postgres) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bool) string {
-	refs := fmt.Sprintf("%s (%s)", fk.References.Table, strings.Join(fk.References.Columns, ", "))
-	s := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s", fk.Column, refs)
+	rcols := []string{}
+	for _, c := range fk.References.Columns {
+		rcols = append(rcols, fmt.Sprintf("\"%s\"", c))
+	}
+	refs := fmt.Sprintf("%s (%s)", p.escapeIdentifier(fk.References.Table), strings.Join(rcols, ", "))
+	s := fmt.Sprintf("FOREIGN KEY (\"%s\") REFERENCES %s", fk.Column, refs)
 
 	if onUpdate, ok := fk.Options["on_update"]; ok {
 		s += fmt.Sprintf(" ON UPDATE %s", onUpdate)
@@ -257,8 +264,19 @@ func (p *Postgres) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bo
 	}
 
 	if !onCreate {
-		s = fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s %s;", t.Name, fk.Name, s)
+		s = fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT \"%s\" %s;", p.escapeIdentifier(t.Name), fk.Name, s)
 	}
 
 	return s
+}
+
+func (Postgres) escapeIdentifier(s string) string {
+	if !strings.ContainsRune(s, '.') {
+		return fmt.Sprintf("\"%s\"", s)
+	}
+	parts := strings.Split(s, ".")
+	for _, p := range parts {
+		p = fmt.Sprintf("\"%s\"", p)
+	}
+	return strings.Join(parts, ".")
 }

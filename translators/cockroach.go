@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/fizz"
-	"github.com/pkg/errors"
 )
 
 type Cockroach struct {
@@ -24,6 +23,10 @@ func NewCockroach(url string, name string) *Cockroach {
 	return &Cockroach{Schema: schema}
 }
 
+func (Cockroach) Name() string {
+	return "cockroach"
+}
+
 func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 	p.Schema.SetTable(&t)
 	sql := []string{}
@@ -36,7 +39,7 @@ func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 			case "integer", "INT", "int":
 				c.ColType = "SERIAL"
 			default:
-				return "", errors.Errorf("can not use %s as a primary key", c.ColType)
+				return "", fmt.Errorf("can not use %s as a primary key", c.ColType)
 			}
 		}
 		cols = append(cols, p.buildAddColumn(c))
@@ -82,7 +85,7 @@ func (p *Cockroach) DropTable(t fizz.Table) (string, error) {
 
 func (p *Cockroach) RenameTable(t []fizz.Table) (string, error) {
 	if len(t) < 2 {
-		return "", errors.New("not enough table names supplied")
+		return "", fmt.Errorf("not enough table names supplied")
 	}
 	oldName := t[0].Name
 	newName := t[1].Name
@@ -97,7 +100,7 @@ func (p *Cockroach) RenameTable(t []fizz.Table) (string, error) {
 
 func (p *Cockroach) ChangeColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 
@@ -138,7 +141,7 @@ func (p *Cockroach) ChangeColumn(t fizz.Table) (string, error) {
 
 func (p *Cockroach) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, p.buildAddColumn(c))
@@ -150,6 +153,7 @@ func (p *Cockroach) AddColumn(t fizz.Table) (string, error) {
 		for i := range tableInfo.Columns {
 			if tableInfo.Columns[i].Name == c.Name {
 				tableInfo.Columns[i] = c
+				found = true
 				break
 			}
 		}
@@ -163,7 +167,7 @@ func (p *Cockroach) AddColumn(t fizz.Table) (string, error) {
 
 func (p *Cockroach) DropColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
 	p.Schema.DeleteColumn(t.Name, c.Name)
@@ -172,7 +176,7 @@ func (p *Cockroach) DropColumn(t fizz.Table) (string, error) {
 
 func (p *Cockroach) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
-		return "", errors.New("not enough columns supplied")
+		return "", fmt.Errorf("not enough columns supplied")
 	}
 
 	oc := t.Columns[0]
@@ -195,7 +199,7 @@ func (p *Cockroach) RenameColumn(t fizz.Table) (string, error) {
 
 func (p *Cockroach) AddIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("Not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 	s := fmt.Sprintf("CREATE INDEX \"%s\" ON \"%s\" (%s);COMMIT TRANSACTION;BEGIN TRANSACTION;", i.Name, t.Name, strings.Join(i.Columns, ", "))
@@ -214,7 +218,7 @@ func (p *Cockroach) AddIndex(t fizz.Table) (string, error) {
 
 func (p *Cockroach) DropIndex(t fizz.Table) (string, error) {
 	if len(t.Indexes) == 0 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	i := t.Indexes[0]
 
@@ -237,7 +241,7 @@ func (p *Cockroach) DropIndex(t fizz.Table) (string, error) {
 func (p *Cockroach) RenameIndex(t fizz.Table) (string, error) {
 	ix := t.Indexes
 	if len(ix) < 2 {
-		return "", errors.New("Not enough indexes supplied!")
+		return "", fmt.Errorf("not enough indexes supplied")
 	}
 	oi := ix[0]
 	ni := ix[1]
@@ -258,7 +262,7 @@ func (p *Cockroach) RenameIndex(t fizz.Table) (string, error) {
 
 func (p *Cockroach) AddForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("Not enough foreign keys supplied!")
+		return "", fmt.Errorf("not enough foreign keys supplied")
 	}
 
 	tableInfo, err := p.Schema.TableInfo(t.Name)
@@ -272,7 +276,7 @@ func (p *Cockroach) AddForeignKey(t fizz.Table) (string, error) {
 
 func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
 	if len(t.ForeignKeys) == 0 {
-		return "", errors.New("Not enough foreign keys supplied!")
+		return "", fmt.Errorf("not enough foreign keys supplied")
 	}
 
 	fk := t.ForeignKeys[0]
@@ -291,10 +295,10 @@ func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
 
 	var ifExists string
 	if v, ok := fk.Options["if_exists"]; ok && v.(bool) {
-		ifExists = "IF EXISTS"
+		ifExists = "IF EXISTS "
 	}
 
-	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, ifExists, fk.Name)
+	s := fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s\"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", p.escapeIdentifier(t.Name), ifExists, fk.Name)
 	return s, nil
 }
 
@@ -402,12 +406,35 @@ func (p *Cockroach) colType(c fizz.Column) string {
 }
 
 func (p *Cockroach) buildForeignKey(t fizz.Table, fk fizz.ForeignKey, onCreate bool) string {
-	refs := fmt.Sprintf("%s (%s)", fk.References.Table, strings.Join(fk.References.Columns, ", "))
-	s := fmt.Sprintf("CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s", fk.Name, fk.Column, refs)
+	rcols := []string{}
+	for _, c := range fk.References.Columns {
+		rcols = append(rcols, fmt.Sprintf("\"%s\"", c))
+	}
+	refs := fmt.Sprintf("%s (%s)", p.escapeIdentifier(fk.References.Table), strings.Join(rcols, ", "))
+	s := fmt.Sprintf("CONSTRAINT \"%s\" FOREIGN KEY (\"%s\") REFERENCES %s", fk.Name, fk.Column, refs)
+
+	if onUpdate, ok := fk.Options["on_update"]; ok {
+		s += fmt.Sprintf(" ON UPDATE %s", onUpdate)
+	}
+
+	if onDelete, ok := fk.Options["on_delete"]; ok {
+		s += fmt.Sprintf(" ON DELETE %s", onDelete)
+	}
 
 	if !onCreate {
-		s = fmt.Sprintf("ALTER TABLE %s ADD %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, s)
+		s = fmt.Sprintf("ALTER TABLE %s ADD %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", p.escapeIdentifier(t.Name), s)
 	}
 
 	return s
+}
+
+func (Cockroach) escapeIdentifier(s string) string {
+	if !strings.ContainsRune(s, '.') {
+		return fmt.Sprintf("\"%s\"", s)
+	}
+	parts := strings.Split(s, ".")
+	for _, p := range parts {
+		p = fmt.Sprintf("\"%s\"", p)
+	}
+	return strings.Join(parts, ".")
 }

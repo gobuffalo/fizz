@@ -14,7 +14,7 @@ fi
 function cleanup {
     echo "Cleanup resources..."
     docker-compose down
-    find ./sql_scripts/sqlite -name *.sqlite* -delete
+    find ./sql_scripts/sqlite -name *.sqlite* -delete || true
 }
 # defer cleanup, so it will be executed even after premature exit
 trap cleanup EXIT
@@ -32,12 +32,19 @@ function test {
   export SODA_DIALECT=$1
   soda drop -e $SODA_DIALECT
   soda create -e $SODA_DIALECT
-  soda migrate -e $SODA_DIALECT
-  go test -tags sqlite $verbose $(go list ./... | grep -v /vendor/)
+  soda migrate -e $SODA_DIALECT -p ./testdata/migrations
+  go test -tags sqlite -count=1 $verbose $(go list ./... | grep -v /vendor/)
+  echo "!!! Resetting $1"
+  soda drop -e $SODA_DIALECT
+  soda create -e $SODA_DIALECT
+  echo "!!! Running e2e tests $1"
+  go test -tags sqlite,e2e -count=1 $verbose ./internal/e2e
 }
 
+test "sqlite"
 test "postgres"
 test "cockroach"
 test "mysql"
-test "sqlserver"
-test "sqlite"
+
+# Does not appear to be implemented in pop:
+# test "sqlserver"
