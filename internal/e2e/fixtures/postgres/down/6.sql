@@ -24,9 +24,9 @@ SET default_tablespace = '';
 
 CREATE TABLE public.e2e_user_notes (
     id uuid NOT NULL,
-    notes character varying(255),
     user_id uuid NOT NULL,
-    slug character varying(64) NOT NULL
+    slug character varying(64) NOT NULL,
+    notes character varying(255)
 );
 
 
@@ -38,6 +38,7 @@ ALTER TABLE public.e2e_user_notes OWNER TO postgres;
 
 CREATE TABLE public.e2e_users (
     id uuid NOT NULL,
+    username character varying(255),
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );

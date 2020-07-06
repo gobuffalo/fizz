@@ -231,57 +231,10 @@ func (p *SQLite) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
 		return "", fmt.Errorf("not enough columns supplied")
 	}
-
-	tableInfo, err := p.Schema.TableInfo(t.Name)
-	if err != nil {
-		return "", err
-	}
-
-	oldColumn := t.Columns[0]
-	newColumn := t.Columns[1]
-
-	sql := []string{}
-
-	oldColumns := tableInfo.ColumnNames()
-	for ic, c := range tableInfo.Columns {
-		if c.Name == oldColumn.Name {
-			tableInfo.Columns[ic].Name = newColumn.Name
-		}
-	}
-
-	for _, i := range tableInfo.Indexes {
-		s, err := p.DropIndex(fizz.Table{
-			Name:    tableInfo.Name,
-			Indexes: []fizz.Index{i},
-		})
-		if err != nil {
-			return "", err
-		}
-		sql = append(sql, s)
-		for ic, c := range i.Columns {
-			if c == oldColumn.Name {
-				i.Columns[ic] = newColumn.Name
-			}
-		}
-	}
-
-	s, err := p.withTempTable(t.Name, func(tempTable fizz.Table) (string, error) {
-		createTableSQL, err := p.CreateTable(*tableInfo)
-		if err != nil {
-			return "", err
-		}
-
-		ins := fmt.Sprintf("INSERT INTO \"%s\" (%s) SELECT %s FROM \"%s\";", t.Name, strings.Join(tableInfo.ColumnNames(), ", "), strings.Join(oldColumns, ", "), tempTable.Name)
-		return strings.Join([]string{createTableSQL, ins}, "\n"), nil
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	sql = append(sql, s)
-
-	return strings.Join(sql, "\n"), nil
+	oc := t.Columns[0]
+	nc := t.Columns[1]
+	s := fmt.Sprintf("ALTER TABLE \"%s\" RENAME COLUMN \"%s\" TO \"%s\";", t.Name, oc.Name, nc.Name)
+	return s, nil
 }
 
 func (p *SQLite) AddIndex(t fizz.Table) (string, error) {
@@ -383,7 +336,9 @@ func (p *SQLite) DropForeignKey(t fizz.Table) (string, error) {
 func (p *SQLite) withTempTable(table string, fn func(fizz.Table) (string, error)) (string, error) {
 	tempTable := fizz.Table{Name: fmt.Sprintf("_%s_tmp", table)}
 
-	sql := []string{fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", table, tempTable.Name)}
+	sql := []string{
+		fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", table, tempTable.Name),
+	}
 	s, err := fn(tempTable)
 	if err != nil {
 		return "", err

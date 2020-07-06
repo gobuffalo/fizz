@@ -25,14 +25,13 @@ func run(s *suite.Suite, c *pop.Connection, checkSchema func()) {
 	r.NoError(err)
 	m.SchemaPath = dest
 
-	const migrationCount = 7
 	refreshFixtures, _ := strconv.ParseBool(os.Getenv("REFRESH_FIXTURES"))
 
 	actualFilePath := filepath.Join(dest, "schema.sql")
 
 	// k is be the number of migrations that should run
 	s.Run("direction=up", func() {
-		for k := 0; k < migrationCount; k++ {
+		for k := 0; k < len(m.Migrations["up"]); k++ {
 			r := s.Require()
 
 			_, err := m.UpTo(1)
@@ -51,7 +50,7 @@ func run(s *suite.Suite, c *pop.Connection, checkSchema func()) {
 	s.Run("check=schema", checkSchema)
 
 	s.Run("direction=down", func() {
-		for k := migrationCount - 1; k >= 0; k-- {
+		for k := len(m.Migrations["down"]) - 1; k >= 0; k-- {
 			r := s.Require()
 
 			r.NoError(m.Down(1))

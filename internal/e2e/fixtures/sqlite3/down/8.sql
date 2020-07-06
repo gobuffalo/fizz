@@ -10,9 +10,9 @@ CREATE TABLE IF NOT EXISTS "e2e_users" (
 );
 CREATE TABLE IF NOT EXISTS "e2e_user_posts" (
 "id" TEXT PRIMARY KEY,
-"notes" TEXT,
 "user_id" char(36) NOT NULL,
 "slug" TEXT NOT NULL,
+"content" TEXT NOT NULL DEFAULT '',
 FOREIGN KEY (user_id) REFERENCES e2e_users (id) ON UPDATE NO ACTION ON DELETE CASCADE
 );
 CREATE UNIQUE INDEX "e2e_user_notes_slug_idx" ON "e2e_user_posts" (slug);
