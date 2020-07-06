@@ -14,4 +14,4 @@ CREATE TABLE IF NOT EXISTS "e2e_users" (
 "id" TEXT PRIMARY KEY,
 "created_at" DATETIME NOT NULL,
 "updated_at" DATETIME NOT NULL
-, "username" TEXT);
+);
