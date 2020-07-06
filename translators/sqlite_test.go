@@ -233,14 +233,7 @@ DROP TABLE "_users_tmp";`
 
 func (p *SQLiteSuite) Test_SQLite_RenameColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE "users" RENAME TO "_users_tmp";
-CREATE TABLE "users" (
-"id" INTEGER PRIMARY KEY AUTOINCREMENT,
-"created_when" DATETIME NOT NULL,
-"updated_at" DATETIME NOT NULL
-);
-INSERT INTO "users" (id, created_when, updated_at) SELECT id, created_at, updated_at FROM "_users_tmp";
-DROP TABLE "_users_tmp";`
+	ddl := `ALTER TABLE "users" RENAME COLUMN "created_at" TO "created_when";`
 
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",

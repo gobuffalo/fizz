@@ -38,6 +38,7 @@ ALTER TABLE public.e2e_user_notes OWNER TO postgres;
 
 CREATE TABLE public.e2e_users (
     id uuid NOT NULL,
+    username character varying(255),
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );

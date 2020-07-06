@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS "e2e_users" (
 );
 CREATE TABLE IF NOT EXISTS "e2e_user_notes" (
 "id" TEXT PRIMARY KEY,
-"notes" TEXT,
-"user_id" char(36) NOT NULL, "title" TEXT NOT NULL DEFAULT '',
+"user_id" char(36) NOT NULL,
+"notes" TEXT, "title" TEXT NOT NULL DEFAULT '',
 FOREIGN KEY (user_id) REFERENCES e2e_users (id) ON UPDATE NO ACTION ON DELETE CASCADE
 );
 CREATE INDEX "e2e_user_notes_title_idx" ON "e2e_user_notes" (title);
