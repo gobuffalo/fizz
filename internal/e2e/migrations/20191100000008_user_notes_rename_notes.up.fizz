@@ -1,0 +1,2 @@
+add_column("e2e_user_posts", "content", "string", {"default": ""})
+drop_column("e2e_user_posts", "notes")
