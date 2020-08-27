@@ -22,7 +22,7 @@ services:
     volumes:
       - ./sqldumps:/docker-entrypoint-initdb.d
   cockroach:
-    image: cockroachdb/cockroach:v2.1.0
+    image: cockroachdb/cockroach:v19.2.10
     ports:
       - "26257:26257"
       - "8080:8080"
