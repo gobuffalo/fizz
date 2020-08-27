@@ -7,14 +7,16 @@ CREATE TABLE e2e_users (
 	FAMILY "primary" (id, created_at, updated_at, username)
 );
 
-CREATE TABLE e2e_user_notes (
+CREATE TABLE e2e_user_posts (
 	id UUID NOT NULL,
 	user_id UUID NOT NULL,
+	slug VARCHAR(64) NOT NULL,
 	notes VARCHAR(255) NULL,
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
 	INDEX e2e_user_notes_auto_index_e2e_user_notes_e2e_users_id_fk (user_id ASC),
 	INDEX e2e_user_notes_user_id_idx (user_id ASC),
-	FAMILY "primary" (id, user_id, notes)
+	UNIQUE INDEX e2e_user_notes_slug_idx (slug ASC),
+	FAMILY "primary" (id, user_id, slug, notes)
 );
 
 CREATE TABLE schema_migration (
@@ -23,7 +25,7 @@ CREATE TABLE schema_migration (
 	FAMILY "primary" (version, rowid)
 );
 
-ALTER TABLE e2e_user_notes ADD CONSTRAINT e2e_user_notes_e2e_users_id_fk FOREIGN KEY (user_id) REFERENCES e2e_users(id) ON DELETE CASCADE;
+ALTER TABLE e2e_user_posts ADD CONSTRAINT e2e_user_notes_e2e_users_id_fk FOREIGN KEY (user_id) REFERENCES e2e_users(id) ON DELETE CASCADE;
 
 -- Validate foreign key constraints. These can fail if there was unvalidated data during the dump.
-ALTER TABLE e2e_user_notes VALIDATE CONSTRAINT e2e_user_notes_e2e_users_id_fk;
+ALTER TABLE e2e_user_posts VALIDATE CONSTRAINT e2e_user_notes_e2e_users_id_fk;
