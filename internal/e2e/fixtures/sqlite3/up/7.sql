@@ -16,3 +16,4 @@ CREATE TABLE IF NOT EXISTS "e2e_user_posts" (
 FOREIGN KEY (user_id) REFERENCES e2e_users (id) ON UPDATE NO ACTION ON DELETE CASCADE
 );
 CREATE UNIQUE INDEX "e2e_user_notes_slug_idx" ON "e2e_user_posts" (slug);
+CREATE INDEX "e2e_user_notes_user_id_idx" ON "e2e_user_posts" (user_id);

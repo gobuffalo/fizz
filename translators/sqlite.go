@@ -115,26 +115,27 @@ func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
 	}
 
 	sql := []string{}
-	s, err := p.withTempTable(t.Name, func(tempTable fizz.Table) (string, error) {
-		var indices []string
-		for _, i := range tableInfo.Indexes {
-			s, err := p.DropIndex(fizz.Table{
-				Name:    tableInfo.Name,
-				Indexes: []fizz.Index{i},
-			})
-			if err != nil {
-				return "", err
-			}
-			indices = append(indices, s)
-		}
 
-		createTableSQL, err := p.CreateTable(*tableInfo)
+	var copyIndexes = make([]fizz.Index, len(tableInfo.Indexes))
+	for k, i := range tableInfo.Indexes {
+		s, err := p.DropIndex(fizz.Table{
+			Name:    tableInfo.Name,
+			Indexes: []fizz.Index{i},
+		})
 		if err != nil {
 			return "", err
 		}
+		sql = append(sql, s)
+		copyIndexes[k] = i
+	}
+	tableInfo.Indexes = copyIndexes // We need to recreate those
 
-		ins := fmt.Sprintf("INSERT INTO \"%s\" (%s) SELECT %s FROM \"%s\";", t.Name, strings.Join(tableInfo.ColumnNames(), ", "), strings.Join(tableInfo.ColumnNames(), ", "), tempTable.Name)
-		return strings.Join(append(indices, createTableSQL, ins), "\n"), nil
+	// We do not need to use withForeignKeyPreservingTempTable here because this will not touch any foreign keys!
+	s, err := p.withForeignKeyPreservingTempTable(*tableInfo, t.Name, func(newTable fizz.Table, tableName string) (string, error) {
+		if t.Columns[0].Name == "slug" {
+			fmt.Print("asdf")
+		}
+		return fmt.Sprintf("INSERT INTO \"%s\" (%s) SELECT %s FROM \"%s\";", newTable.Name, strings.Join(newTable.ColumnNames(), ", "), strings.Join(newTable.ColumnNames(), ", "), tableName), nil
 	})
 
 	if err != nil {
@@ -208,15 +209,8 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 	}
 	tableInfo.ForeignKeys = newForeignKeys
 
-	s, err := p.withTempTable(t.Name, func(tempTable fizz.Table) (string, error) {
-		createTableSQL, err := p.CreateTable(*tableInfo)
-		if err != nil {
-			return "", err
-		}
-
-		s := fmt.Sprintf("INSERT INTO \"%s\" (%s) SELECT %s FROM \"%s\";", tableInfo.Name, strings.Join(tableInfo.ColumnNames(), ", "), strings.Join(tableInfo.ColumnNames(), ", "), tempTable.Name)
-
-		return strings.Join([]string{createTableSQL, s}, "\n"), nil
+	s, err := p.withForeignKeyPreservingTempTable(*tableInfo, t.Name, func(newTable fizz.Table, tableName string) (string, error) {
+		return fmt.Sprintf("INSERT INTO \"%s\" (%s) SELECT %s FROM \"%s\";\n", newTable.Name, strings.Join(newTable.ColumnNames(), ", "), strings.Join(newTable.ColumnNames(), ", "), tableName), nil
 	})
 
 	if err != nil {
@@ -336,16 +330,50 @@ func (p *SQLite) DropForeignKey(t fizz.Table) (string, error) {
 func (p *SQLite) withTempTable(table string, fn func(fizz.Table) (string, error)) (string, error) {
 	tempTable := fizz.Table{Name: fmt.Sprintf("_%s_tmp", table)}
 
-	sql := []string{
-		fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", table, tempTable.Name),
-	}
 	s, err := fn(tempTable)
 	if err != nil {
 		return "", err
 	}
+
+	sql := []string{
+		fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", table, tempTable.Name),
+	}
+
 	sql = append(sql, s, fmt.Sprintf("DROP TABLE \"%s\";", tempTable.Name))
 
 	return strings.Join(sql, "\n"), nil
+}
+
+// withForeignKeyPreservingTempTable create a new temporary table, copies all the contents from the old table over to the new
+// table, removes the old table, and then renames the temporary table to the original table name. This
+// preserves foreign key constraint because because SQLite does not drop foreign keys when their reference table
+// is deleted. It only removes any columns referencing data in the deleted table. [1]
+//
+// [1] https://sqlite.org/lang_droptable.html
+func (p *SQLite) withForeignKeyPreservingTempTable(newTable fizz.Table, tableName string, fn func(newTable fizz.Table, tableName string) (string, error)) (string, error) {
+	var sql []string
+
+	newTable.Name = fmt.Sprintf("_%s_tmp", tableName)
+	defer func() {
+		newTable.Name = tableName
+	}()
+
+	createTableSQL, err := p.CreateTable(newTable)
+	if err != nil {
+		return "", err
+	}
+
+	callbackSQL, err := fn(newTable, tableName)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Join(append(sql,
+		createTableSQL,
+		callbackSQL,
+		fmt.Sprintf("DROP TABLE \"%s\";", tableName),
+		fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", newTable.Name, tableName),
+	), "\n"), nil
 }
 
 func (p *SQLite) buildColumn(c fizz.Column) string {

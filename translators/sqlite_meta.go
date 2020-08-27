@@ -3,6 +3,7 @@ package translators
 import (
 	"database/sql"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/gobuffalo/fizz"
@@ -170,6 +171,16 @@ func (p *sqliteSchema) buildTableIndexes(t *fizz.Table, db *sql.DB) error {
 	return nil
 }
 
+var tmpTable = regexp.MustCompile("^_(.*)_tmp$")
+
+func canonicalizeSQLiteTable(table string) string {
+	matches := tmpTable.FindAllStringSubmatch(table, 1)
+	if len(matches) == 1 && len(matches[0]) == 2 {
+		return matches[0][1]
+	}
+	return table
+}
+
 func (p *sqliteSchema) buildTableForeignKeyIndexes(t *fizz.Table, db *sql.DB) error {
 	// This ignores all internal SQLite keys which are prefixed with `sqlite_` as explained here:
 	// https://www.sqlite.org/fileformat2.html#intschema
@@ -200,7 +211,7 @@ func (p *sqliteSchema) buildTableForeignKeyIndexes(t *fizz.Table, db *sql.DB) er
 		i := fizz.ForeignKey{
 			Column: li.From,
 			References: fizz.ForeignKeyRef{
-				Table:   li.Table,
+				Table:   canonicalizeSQLiteTable(li.Table),
 				Columns: []string{li.To},
 			},
 			Options: options,

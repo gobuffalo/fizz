@@ -13,3 +13,4 @@ CREATE TABLE IF NOT EXISTS "e2e_user_notes" (
 "notes" TEXT,
 FOREIGN KEY (user_id) REFERENCES e2e_users (id) ON UPDATE NO ACTION ON DELETE CASCADE
 );
+CREATE INDEX "e2e_user_notes_user_id_idx" ON "e2e_user_notes" (user_id);

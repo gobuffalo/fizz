@@ -174,14 +174,14 @@ func (p *SQLiteSuite) Test_SQLite_RenameTable_NotEnoughValues() {
 func (p *SQLiteSuite) Test_SQLite_ChangeColumn() {
 	r := p.Require()
 
-	ddl := `ALTER TABLE "users" RENAME TO "_users_tmp";
-CREATE TABLE "users" (
+	ddl := `CREATE TABLE "_users_tmp" (
 "id" INTEGER PRIMARY KEY AUTOINCREMENT,
 "created_at" TEXT NOT NULL DEFAULT 'foo',
 "updated_at" DATETIME NOT NULL
 );
-INSERT INTO "users" (id, created_at, updated_at) SELECT id, created_at, updated_at FROM "_users_tmp";
-DROP TABLE "_users_tmp";`
+INSERT INTO "_users_tmp" (id, created_at, updated_at) SELECT id, created_at, updated_at FROM "users";
+DROP TABLE "users";
+ALTER TABLE "_users_tmp" RENAME TO "users";`
 
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
@@ -210,13 +210,14 @@ func (p *SQLiteSuite) Test_SQLite_AddColumn() {
 
 func (p *SQLiteSuite) Test_SQLite_DropColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE "users" RENAME TO "_users_tmp";
-CREATE TABLE "users" (
+	ddl := `CREATE TABLE "_users_tmp" (
 "id" INTEGER PRIMARY KEY AUTOINCREMENT,
 "updated_at" DATETIME NOT NULL
 );
-INSERT INTO "users" (id, updated_at) SELECT id, updated_at FROM "_users_tmp";
-DROP TABLE "_users_tmp";`
+INSERT INTO "_users_tmp" (id, updated_at) SELECT id, updated_at FROM "users";
+
+DROP TABLE "users";
+ALTER TABLE "_users_tmp" RENAME TO "users";`
 
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
@@ -363,16 +364,17 @@ FOREIGN KEY (user_id) REFERENCES users (uuid) ON DELETE cascade
 );`, res)
 
 	res, _ = fizz.AString(`drop_column("user_notes","notes")`, sqt)
-	r.Equal(`ALTER TABLE "user_notes" RENAME TO "_user_notes_tmp";
-CREATE TABLE "user_notes" (
+	r.Equal(`CREATE TABLE "_user_notes_tmp" (
 "uuid" TEXT PRIMARY KEY,
 "user_id" char(36) NOT NULL,
 "created_at" DATETIME NOT NULL,
 "updated_at" DATETIME NOT NULL,
 FOREIGN KEY (user_id) REFERENCES users (uuid) ON DELETE cascade
 );
-INSERT INTO "user_notes" (uuid, user_id, created_at, updated_at) SELECT uuid, user_id, created_at, updated_at FROM "_user_notes_tmp";
-DROP TABLE "_user_notes_tmp";`, res)
+INSERT INTO "_user_notes_tmp" (uuid, user_id, created_at, updated_at) SELECT uuid, user_id, created_at, updated_at FROM "user_notes";
+
+DROP TABLE "user_notes";
+ALTER TABLE "_user_notes_tmp" RENAME TO "user_notes";`, res)
 
 	res, _ = fizz.AString(`rename_table("users","user_accounts")`, sqt)
 	r.Equal(`ALTER TABLE "users" RENAME TO "user_accounts";`, res)
