@@ -2,7 +2,7 @@
 --
 -- Host: 127.0.0.1    Database: pop_test
 -- ------------------------------------------------------
--- Server version	5.7.30
+-- Server version	5.7.31
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -24,6 +24,7 @@ DROP TABLE IF EXISTS `e2e_users`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `e2e_users` (
   `id` char(36) NOT NULL,
+  `username` varchar(255) DEFAULT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`id`)
@@ -52,4 +53,4 @@ CREATE TABLE `schema_migration` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-06-20 14:38:22
+-- Dump completed on 2020-08-27 23:39:21

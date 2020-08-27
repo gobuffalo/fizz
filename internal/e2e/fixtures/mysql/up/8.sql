@@ -16,21 +16,21 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `e2e_user_notes`
+-- Table structure for table `e2e_user_posts`
 --
 
-DROP TABLE IF EXISTS `e2e_user_notes`;
+DROP TABLE IF EXISTS `e2e_user_posts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `e2e_user_notes` (
+CREATE TABLE `e2e_user_posts` (
   `id` char(36) NOT NULL,
-  `notes` varchar(255) DEFAULT NULL,
   `user_id` char(36) NOT NULL,
   `slug` varchar(64) NOT NULL,
+  `content` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `e2e_user_notes_slug_idx` (`slug`),
   KEY `e2e_user_notes_user_id_idx` (`user_id`),
-  CONSTRAINT `e2e_user_notes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `e2e_users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `e2e_user_posts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `e2e_users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -43,7 +43,7 @@ DROP TABLE IF EXISTS `e2e_users`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `e2e_users` (
   `id` char(36) NOT NULL,
-  `username` varchar(255) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`id`)
@@ -72,4 +72,4 @@ CREATE TABLE `schema_migration` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-08-27 23:39:22
+-- Dump completed on 2020-08-27 23:39:23
