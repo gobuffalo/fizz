@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.18
--- Dumped by pg_dump version 12.3
+-- Dumped from database version 9.6.19
+-- Dumped by pg_dump version 12.4
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -24,9 +24,9 @@ SET default_tablespace = '';
 
 CREATE TABLE public.e2e_users (
     id uuid NOT NULL,
-    username character varying(255),
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    username character varying(255)
 );
 
 

@@ -119,15 +119,35 @@ func (p *Cockroach) ChangeColumn(t fizz.Table) (string, error) {
 
 	sql := []string{}
 	s, err := p.withTempColumn(t.Name, c.Name, func(table fizz.Table, origCol fizz.Column, tempCol string) (string, error) {
+		var notNullWorkaround bool
+		if c.Options["default_raw"] == nil && c.Options["default"] == nil && c.Options["null"] == nil {
+			// This happens when the original column has "NOT NULL" and the changed column also has "NOT NULL" and no "DEFAULT".
+			// In those cases, if the table has data already, CockroachDB will fail with an error mandating that a column can not
+			// be added to the table unless it is either "NULL" or has a "DEFAULT". By first using NULL and then setting the
+			// "NOT NULL" constraint, this problem is worked around.
+			notNullWorkaround = true
+		}
+
 		newCol := p.buildChangeColumn(origCol, c)
 		err1 := p.Schema.ReplaceColumn(table.Name, origCol.Name, newCol)
 		if err1 != nil {
 			return "", err1
 		}
 
-		createColumnSQL := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", table.Name, p.buildAddColumn(newCol))
-		ins := fmt.Sprintf("UPDATE \"%s\" SET \"%s\" = \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, c.Name, tempCol)
-		return strings.Join([]string{createColumnSQL, ins}, "\n"), nil
+		if notNullWorkaround {
+			newCol.Options["null"] = true
+		}
+
+		createColumnSQL := fmt.Sprintf(`ALTER TABLE "%s" ADD COLUMN %s;COMMIT TRANSACTION;BEGIN TRANSACTION;`, table.Name, p.buildAddColumn(newCol))
+		ins := fmt.Sprintf(`UPDATE "%s" SET "%s" = "%s";COMMIT TRANSACTION;BEGIN TRANSACTION;`, t.Name, c.Name, tempCol)
+
+		sql := []string{createColumnSQL, ins}
+		if notNullWorkaround {
+			newCol.Options["null"] = nil
+			sql = append(sql, fmt.Sprintf(`ALTER TABLE "%s" ALTER COLUMN "%s" SET NOT NULL;COMMIT TRANSACTION;BEGIN TRANSACTION;`, t.Name, newCol.Name))
+		}
+
+		return strings.Join(sql, "\n"), nil
 	})
 
 	if err != nil {
@@ -146,7 +166,7 @@ func (p *Cockroach) AddColumn(t fizz.Table) (string, error) {
 	c := t.Columns[0]
 	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, p.buildAddColumn(c))
 
-	//Update schema cache if we can
+	// Update schema cache if we can
 	tableInfo, err := p.Schema.TableInfo(t.Name)
 	if err == nil {
 		found := false
@@ -362,15 +382,51 @@ func (p *Cockroach) withTempColumn(tableName string, column string, fn func(fizz
 		return "", err1
 	}
 
+	var sql []string
+	var recreateIndexes []fizz.Index
+	for _, i := range table.Indexes {
+		var found bool
+
+		for _, ic := range i.Columns {
+			if ic == column {
+				found = true
+				break
+			}
+		}
+
+		if found {
+			s, err := p.DropIndex(fizz.Table{
+				Name:    table.Name,
+				Indexes: []fizz.Index{i},
+			})
+			if err != nil {
+				return "", err
+			}
+			sql = append(sql, s)
+			recreateIndexes = append(recreateIndexes, i)
+		}
+	}
+
 	tempCol := fmt.Sprintf("_%s_tmp", column)
 
-	sql := []string{fmt.Sprintf("ALTER TABLE \"%s\" RENAME COLUMN \"%s\" TO \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", tableName, column, tempCol)}
+	sql = append(sql, fmt.Sprintf("ALTER TABLE \"%s\" RENAME COLUMN \"%s\" TO \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", tableName, column, tempCol))
 
 	s, err := fn(*table, *col, tempCol)
 	if err != nil {
 		return "", err
 	}
 	sql = append(sql, s, fmt.Sprintf("ALTER TABLE \"%s\" DROP COLUMN \"%s\";COMMIT TRANSACTION;BEGIN TRANSACTION;", tableName, tempCol))
+
+	for _, i := range recreateIndexes {
+		s, err := p.AddIndex(fizz.Table{
+			Name:    table.Name,
+			Indexes: []fizz.Index{i},
+		})
+		if err != nil {
+			return "", err
+		}
+		sql = append(sql, s)
+	}
 
 	return strings.Join(sql, "\n"), nil
 }

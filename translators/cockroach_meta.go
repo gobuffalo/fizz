@@ -138,7 +138,7 @@ func (p *cockroachSchema) buildTableIndexes(t *fizz.Table, db *sql.DB) error {
 			Columns: []string{},
 		}
 
-		prag = fmt.Sprintf("SELECT column_name as name, direction FROM information_schema.statistics where index_name = '%s';", i.Name)
+		prag = fmt.Sprintf("SELECT column_name as name, direction FROM information_schema.statistics where index_name = '%s' and implicit = 'NO';", i.Name)
 		iires, err := db.Query(prag)
 		if err != nil {
 			return err
