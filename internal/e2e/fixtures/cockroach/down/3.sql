@@ -10,11 +10,14 @@ CREATE TABLE e2e_users (
 CREATE TABLE e2e_user_notes (
 	id UUID NOT NULL,
 	user_id UUID NOT NULL,
+	published BOOL NOT NULL DEFAULT false,
 	notes VARCHAR(255) NULL,
+	title VARCHAR(64) NOT NULL DEFAULT '':::STRING,
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
 	INDEX e2e_user_notes_auto_index_e2e_user_notes_e2e_users_id_fk (user_id ASC),
 	INDEX e2e_user_notes_user_id_idx (user_id ASC),
-	FAMILY "primary" (id, user_id, notes)
+	INDEX e2e_user_notes_title_idx (title ASC),
+	FAMILY "primary" (id, user_id, published, notes, title)
 );
 
 CREATE TABLE schema_migration (

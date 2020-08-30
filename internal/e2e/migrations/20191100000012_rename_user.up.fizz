@@ -1,0 +1,1 @@
+rename_table("e2e_users", "e2e_authors")

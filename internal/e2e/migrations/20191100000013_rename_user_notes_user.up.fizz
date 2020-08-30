@@ -1,0 +1,1 @@
+rename_column("e2e_user_posts", "user_id", "author_id")

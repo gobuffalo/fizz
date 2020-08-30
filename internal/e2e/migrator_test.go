@@ -121,7 +121,7 @@ func runTestData(s *suite.Suite, c *pop.Connection, supportsUUID bool) func() {
 		r := s.Require()
 
 		if supportsUUID {
-			r.Error(c.RawQuery("INSERT INTO e2e_users (id, created_at, updated_at) VALUES (?, ?, ?)", "78dba9f7-dd20a39f64cb", time.Now(), time.Now()).Exec(), "should fail because uuid format is not correct")
+			r.Error(c.RawQuery("INSERT INTO e2e_authors (id, created_at, updated_at) VALUES (?, ?, ?)", "78dba9f7-dd20a39f64cb", time.Now(), time.Now()).Exec(), "should fail because uuid format is not correct")
 		}
 
 		runInsertUUID(c, r)
@@ -132,22 +132,22 @@ func runTestData(s *suite.Suite, c *pop.Connection, supportsUUID bool) func() {
 }
 
 func runInsertUUID(c *pop.Connection, r *require.Assertions) {
-	r.NoError(c.RawQuery("INSERT INTO e2e_users (id, created_at, updated_at) VALUES (?, ?, ?)", "78dba9f7-81af-415e-aa2b-dd20a39f64cb", time.Now(), time.Now()).Exec())
-	r.Error(c.RawQuery("INSERT INTO e2e_users (id, created_at, updated_at) VALUES (?, ?, ?)", "78dba9f7-81af-415e-aa2b-dd20a39f64cb", time.Now(), time.Now()).Exec(), "should fail because it is a duplicate primary key")
+	r.NoError(c.RawQuery("INSERT INTO e2e_authors (id, created_at, updated_at) VALUES (?, ?, ?)", "78dba9f7-81af-415e-aa2b-dd20a39f64cb", time.Now(), time.Now()).Exec())
+	r.Error(c.RawQuery("INSERT INTO e2e_authors (id, created_at, updated_at) VALUES (?, ?, ?)", "78dba9f7-81af-415e-aa2b-dd20a39f64cb", time.Now(), time.Now()).Exec(), "should fail because it is a duplicate primary key")
 }
 
 func runForeignKeyChecks(c *pop.Connection, r *require.Assertions) {
-	err := c.RawQuery("INSERT INTO e2e_user_posts (id, user_id, slug) VALUES (?,?,?)", "acd6abe3-38fa-4c3c-a676-933e1b06fa42", "cc1debdc-5d5a-41f3-a36b-48b1f3a03089", "slug-1").Exec()
+	err := c.RawQuery("INSERT INTO e2e_user_posts (id, author_id, slug, published) VALUES (?,?,?, false)", "acd6abe3-38fa-4c3c-a676-933e1b06fa42", "cc1debdc-5d5a-41f3-a36b-48b1f3a03089", "slug-1").Exec()
 	r.Error(err, "should fail because foreign key constraint fails")
 	r.Contains(strings.ToLower(err.Error()), "foreign")
 
-	r.NoError(c.RawQuery("INSERT INTO e2e_user_posts (id, user_id, slug) VALUES (?,?,?)", "03c6c800-54c6-40cd-89f1-7dff731f9b54", "78dba9f7-81af-415e-aa2b-dd20a39f64cb", "slug-1").Exec())
+	r.NoError(c.RawQuery("INSERT INTO e2e_user_posts (id, author_id, slug, published) VALUES (?,?,?, false)", "03c6c800-54c6-40cd-89f1-7dff731f9b54", "78dba9f7-81af-415e-aa2b-dd20a39f64cb", "slug-1").Exec())
 }
 
 func runUniqueKeyChecks(c *pop.Connection, r *require.Assertions) {
-	r.NoError(c.RawQuery("INSERT INTO e2e_user_posts (id, user_id, slug) VALUES (?,?,?)", "ccbf7278-092d-4c6f-a627-84cf45233c6a", "78dba9f7-81af-415e-aa2b-dd20a39f64cb", "dupe-slug").Exec())
+	r.NoError(c.RawQuery("INSERT INTO e2e_user_posts (id, author_id, slug) VALUES (?,?,?)", "ccbf7278-092d-4c6f-a627-84cf45233c6a", "78dba9f7-81af-415e-aa2b-dd20a39f64cb", "dupe-slug").Exec())
 
-	err := c.RawQuery("INSERT INTO e2e_user_posts (id, user_id, slug) VALUES (?,?,?)", "ff7eb268-1640-48d3-b295-57d9a20faf3f", "78dba9f7-81af-415e-aa2b-dd20a39f64cb", "dupe-slug").Exec()
+	err := c.RawQuery("INSERT INTO e2e_user_posts (id, author_id, slug) VALUES (?,?,?)", "ff7eb268-1640-48d3-b295-57d9a20faf3f", "78dba9f7-81af-415e-aa2b-dd20a39f64cb", "dupe-slug").Exec()
 	r.Error(err, "should fail because UNIQUE constraint fails")
 
 	message := strings.ToLower(err.Error())
@@ -157,7 +157,7 @@ func runUniqueKeyChecks(c *pop.Connection, r *require.Assertions) {
 }
 
 func runNotNullChecks(c *pop.Connection, r *require.Assertions) {
-	err := c.RawQuery("INSERT INTO e2e_user_posts (id, user_id) VALUES (?,?)", "a23e6e72-08f9-412f-afb8-01f6af234eb9", "78dba9f7-81af-415e-aa2b-dd20a39f64cb").Exec()
+	err := c.RawQuery("INSERT INTO e2e_user_posts (id, author_id) VALUES (?,?)", "a23e6e72-08f9-412f-afb8-01f6af234eb9", "78dba9f7-81af-415e-aa2b-dd20a39f64cb").Exec()
 	r.Error(err, "should fail because NOT NULL fails")
 	message := strings.ToLower(err.Error())
 	r.True(
