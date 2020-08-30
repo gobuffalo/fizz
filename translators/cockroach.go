@@ -383,6 +383,21 @@ func (p *Cockroach) withTempColumn(tableName string, column string, fn func(fizz
 	}
 
 	var sql []string
+	var recreateForeignKeys []fizz.ForeignKey
+	for _, i := range table.ForeignKeys {
+		if i.Column == column {
+			s, err := p.DropForeignKey(fizz.Table{
+				Name:        table.Name,
+				ForeignKeys: []fizz.ForeignKey{i},
+			})
+			if err != nil {
+				return "", err
+			}
+			sql = append(sql, s)
+			recreateForeignKeys = append(recreateForeignKeys, i)
+		}
+	}
+
 	var recreateIndexes []fizz.Index
 	for _, i := range table.Indexes {
 		var found bool
@@ -421,6 +436,17 @@ func (p *Cockroach) withTempColumn(tableName string, column string, fn func(fizz
 		s, err := p.AddIndex(fizz.Table{
 			Name:    table.Name,
 			Indexes: []fizz.Index{i},
+		})
+		if err != nil {
+			return "", err
+		}
+		sql = append(sql, s)
+	}
+
+	for _, i := range recreateForeignKeys {
+		s, err := p.AddForeignKey(fizz.Table{
+			Name:        table.Name,
+			ForeignKeys: []fizz.ForeignKey{i},
 		})
 		if err != nil {
 			return "", err

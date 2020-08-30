@@ -7,6 +7,16 @@ import (
 	"github.com/gobuffalo/fizz"
 )
 
+type cockroachForeignKeyListInfo struct {
+	Name      string `db:"name"`
+	Column    string `db:"column_name"`
+	TableRef  string `db:"referenced_table_name"`
+	ColumnRef string `db:"referenced_column_name"`
+	OnUpdate  string `db:"on_update"`
+	OnDelete  string `db:"on_delete"`
+	Match     string `db:"match"`
+}
+
 type cockroachIndexListInfo struct {
 	Name      string `db:"name"`
 	NonUnique bool   `db:"non_unique"`
@@ -36,7 +46,7 @@ func (t cockroachTableInfo) ToColumn() fizz.Column {
 		c.Options["null"] = true
 	}
 	if t.Default != nil {
-		c.Options["default_raw"] = fmt.Sprint(t.Default) //strings.TrimSuffix(strings.TrimPrefix(fmt.Sprintf("%s", t.Default), "'"), "'")
+		c.Options["default_raw"] = fmt.Sprint(t.Default) // strings.TrimSuffix(strings.TrimPrefix(fmt.Sprintf("%s", t.Default), "'"), "'")
 	}
 	return c
 }
@@ -113,12 +123,26 @@ func (p *cockroachSchema) buildTableData(table *fizz.Table, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+	err = p.buildForeignKeyIndexes(table, db)
+	if err != nil {
+		return err
+	}
 	p.schema[table.Name] = table
 	return nil
 }
 
 func (p *cockroachSchema) buildTableIndexes(t *fizz.Table, db *sql.DB) error {
-	prag := fmt.Sprintf("SELECT distinct index_name as name, (non_unique = 'YES') as non_unique FROM information_schema.statistics where table_name = '%s';", t.Name)
+	prag := fmt.Sprintf(`
+SELECT
+    DISTINCT index_name AS name,
+                     (non_unique = 'YES') AS non_unique
+FROM
+     information_schema.statistics
+WHERE
+      table_name = '%s'
+AND
+      index_name NOT LIKE '%%_auto_index_%%';
+`, t.Name)
 	res, err := db.Query(prag)
 	if err != nil {
 		return err
@@ -154,7 +178,95 @@ func (p *cockroachSchema) buildTableIndexes(t *fizz.Table, db *sql.DB) error {
 		}
 
 		t.Indexes = append(t.Indexes, i)
+	}
+	return nil
+}
 
+func (p *cockroachSchema) buildForeignKeyIndexes(t *fizz.Table, db *sql.DB) error {
+	prag := fmt.Sprintf(`
+SELECT
+	fk.constraint_name,
+	fk.referenced_table_name,
+	col.column_name,
+	fk.update_rule,
+	fk.delete_rule,
+	fk.match_option
+FROM
+	information_schema.referential_constraints as fk
+INNER JOIN
+	information_schema.key_column_usage as col
+ON
+	col.constraint_name = fk.constraint_name
+WHERE
+	fk.table_name = '%s'
+;`, t.Name)
+	res, err := db.Query(prag)
+	if err != nil {
+		return err
+	}
+	defer res.Close()
+
+	for res.Next() {
+		li := cockroachForeignKeyListInfo{}
+		err = res.Scan(
+			&li.Name,
+			&li.TableRef,
+			&li.Column,
+			&li.OnUpdate,
+			&li.OnDelete,
+			&li.Match)
+		if err != nil {
+			return err
+		}
+
+		options := map[string]interface{}{}
+		if li.OnDelete != "" {
+			options["on_delete"] = li.OnDelete
+		}
+
+		if li.OnUpdate != "" {
+			options["on_update"] = li.OnUpdate
+		}
+
+		if li.Match != "" {
+			options["match"] = li.Match
+		}
+
+		ref := fizz.ForeignKeyRef{
+			Table:   li.TableRef,
+			Columns: []string{},
+		}
+
+		prag = fmt.Sprintf(`
+SELECT
+	column_name as referenced_column_name
+FROM
+	information_schema.constraint_column_usage as ref
+WHERE 
+	constraint_name = '%s'
+;`, li.Name)
+		iires, err := db.Query(prag)
+		if err != nil {
+			return err
+		}
+
+		for iires.Next() {
+			ii := cockroachForeignKeyListInfo{}
+			err = iires.Scan(&ii.ColumnRef)
+			if err != nil {
+				return err
+			}
+			ref.Columns = append(ref.Columns, ii.ColumnRef)
+		}
+
+		i := fizz.ForeignKey{
+			Name:       li.Name,
+			Column:     li.Column,
+			References: ref,
+			Options:    options,
+		}
+
+		t.ForeignKeys = append(t.ForeignKeys, i)
 	}
 	return nil
 }

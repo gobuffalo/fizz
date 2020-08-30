@@ -2,22 +2,19 @@ CREATE TABLE e2e_users (
 	id UUID NOT NULL,
 	created_at TIMESTAMP NOT NULL,
 	updated_at TIMESTAMP NOT NULL,
-	name VARCHAR(255) NULL,
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
-	FAMILY "primary" (id, created_at, updated_at, name)
+	FAMILY "primary" (id, created_at, updated_at)
 );
 
 CREATE TABLE e2e_user_posts (
 	id UUID NOT NULL,
-	user_id UUID NOT NULL,
 	content VARCHAR(255) NOT NULL DEFAULT '':::STRING,
-	published BOOL NOT NULL DEFAULT false,
+	user_id UUID NOT NULL,
 	slug VARCHAR(64) NOT NULL,
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
-	INDEX e2e_user_notes_auto_index_e2e_user_notes_e2e_users_id_fk (user_id ASC),
 	INDEX e2e_user_notes_user_id_idx (user_id ASC),
 	UNIQUE INDEX e2e_user_notes_slug_idx (slug ASC),
-	FAMILY "primary" (id, user_id, content, published, slug)
+	FAMILY "primary" (id, content, user_id, slug)
 );
 
 CREATE TABLE schema_migration (
