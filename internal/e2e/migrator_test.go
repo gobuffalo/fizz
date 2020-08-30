@@ -39,10 +39,12 @@ func run(s *suite.Suite, c *pop.Connection, checkSchema func()) {
 			r.NoError(m.DumpMigrationSchema())
 			expectedFilePath := filepath.Join("fixtures", c.Dialect.Name(), "up", fmt.Sprintf("%d.sql", k))
 
-			if !expectEqualFiles(s, expectedFilePath, actualFilePath) && refreshFixtures {
+			if refreshFixtures {
 				content, err := ioutil.ReadFile(actualFilePath)
 				r.NoError(err)
 				r.NoError(ioutil.WriteFile(expectedFilePath, content, 0666))
+			} else {
+				_ = expectEqualFiles(s, expectedFilePath, actualFilePath)
 			}
 		}
 	})
@@ -57,10 +59,12 @@ func run(s *suite.Suite, c *pop.Connection, checkSchema func()) {
 			r.NoError(m.DumpMigrationSchema())
 			expectedFilePath := filepath.Join("fixtures", c.Dialect.Name(), "down", fmt.Sprintf("%d.sql", k))
 
-			if !expectEqualFiles(s, expectedFilePath, actualFilePath) && refreshFixtures {
+			if refreshFixtures {
 				content, err := ioutil.ReadFile(actualFilePath)
 				r.NoError(err)
 				r.NoError(ioutil.WriteFile(expectedFilePath, content, 0666))
+			} else {
+				_ = expectEqualFiles(s, expectedFilePath, actualFilePath)
 			}
 		}
 	})
