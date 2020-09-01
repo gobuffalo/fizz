@@ -1,0 +1,2 @@
+add_column("e2e_user_posts", "published", "bool", {"default_raw": "FALSE"})
+change_column("e2e_user_posts", "author_id", "uuid", {"null": true})

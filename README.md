@@ -209,7 +209,7 @@ make test
 ```
 
 If you made changes to the end-to-end tests and want to update the fixtures,
-run:
+run the following command a couple of times until tests pass:
 
 ```
 REFRESH_FIXTURES=true make test
