@@ -139,9 +139,7 @@ SELECT
 FROM
      information_schema.statistics
 WHERE
-      table_name = '%s'
-AND
-      index_name NOT LIKE '%%_auto_index_%%';
+      table_name = '%s';
 `, t.Name)
 	res, err := db.Query(prag)
 	if err != nil {
