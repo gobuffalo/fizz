@@ -13,6 +13,7 @@ CREATE TABLE e2e_user_posts (
 	user_id UUID NOT NULL,
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
 	UNIQUE INDEX e2e_user_notes_slug_idx (slug ASC),
+	INDEX e2e_user_notes_auto_index_e2e_user_notes_e2e_users_id_fk (user_id ASC),
 	INDEX e2e_user_notes_user_id_idx (user_id ASC),
 	FAMILY "primary" (id, content, slug, user_id)
 );

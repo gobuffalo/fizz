@@ -16,6 +16,21 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `e2e_authors`
+--
+
+DROP TABLE IF EXISTS `e2e_authors`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `e2e_authors` (
+  `id` char(36) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `e2e_user_posts`
 --
 
@@ -24,29 +39,14 @@ DROP TABLE IF EXISTS `e2e_user_posts`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `e2e_user_posts` (
   `id` char(36) NOT NULL,
-  `user_id` char(36) NOT NULL,
-  `slug` varchar(64) NOT NULL,
+  `author_id` char(36) DEFAULT NULL,
+  `slug` varchar(32) NOT NULL,
   `content` varchar(255) NOT NULL DEFAULT '',
+  `published` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `e2e_user_notes_slug_idx` (`slug`),
-  KEY `e2e_user_notes_user_id_idx` (`user_id`),
-  CONSTRAINT `e2e_user_posts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `e2e_users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `e2e_users`
---
-
-DROP TABLE IF EXISTS `e2e_users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `e2e_users` (
-  `id` char(36) NOT NULL,
-  `created_at` datetime NOT NULL,
-  `updated_at` datetime NOT NULL,
-  `name` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  KEY `e2e_user_notes_user_id_idx` (`author_id`),
+  CONSTRAINT `e2e_user_posts_ibfk_1` FOREIGN KEY (`author_id`) REFERENCES `e2e_authors` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -72,4 +72,4 @@ CREATE TABLE `schema_migration` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-09-03 11:40:19
+-- Dump completed on 2020-09-03 11:40:17
