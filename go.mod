@@ -1,16 +1,13 @@
 module github.com/gobuffalo/fizz
 
-go 1.12
+go 1.16
 
 require (
-	github.com/Masterminds/semver/v3 v3.0.3
-	github.com/go-sql-driver/mysql v1.5.0
-	github.com/gobuffalo/plush/v4 v4.0.0
-	github.com/gobuffalo/pop/v5 v5.2.0
-	github.com/jackc/pgx/v4 v4.6.0
+	github.com/Masterminds/semver/v3 v3.1.1
+	github.com/go-sql-driver/mysql v1.6.0
+	github.com/gobuffalo/plush/v4 v4.1.9
+	github.com/gobuffalo/pop/v5 v5.3.4
+	github.com/jackc/pgx/v4 v4.13.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
-	github.com/stretchr/testify v1.5.1
-	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9 // indirect
-	golang.org/x/text v0.3.3 // indirect
-	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
+	github.com/stretchr/testify v1.7.0
 )
