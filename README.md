@@ -1,5 +1,8 @@
 # Fizz
 
+[![Actions Status](https://github.com/gobuffalo/fizz/workflows/Tests/badge.svg)](https://github.com/gobuffalo/fizz/actions)
+[![GoDoc](https://godoc.org/github.com/gobuffalo/fizz?status.svg)](https://godoc.org/github.com/gobuffalo/fizz)
+
 A Common DSL for Migrating Databases
 
 ## Create a Table
