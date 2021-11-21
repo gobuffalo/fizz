@@ -12,4 +12,4 @@ require (
 	github.com/stretchr/testify v1.7.0
 )
 
-replace github.com/gobuffalo/pop/v6 v6.0.0 => github.com/fasmat/pop/v6 v6.0.0-20211121130729-c0494e3061e4
+replace github.com/gobuffalo/pop/v6 v6.0.0 => github.com/fasmat/pop/v6 v6.0.0-20211121152713-e467c63e98c0
