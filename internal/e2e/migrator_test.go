@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gobuffalo/pop/v5"
+	"github.com/gobuffalo/pop/v6"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -93,7 +93,7 @@ actual SQL dump:
 		normalizeDump(string(ac))
 }
 
-var spaces = regexp.MustCompile("\\s+")
+var spaces = regexp.MustCompile(`\s+`)
 var comments = regexp.MustCompile("(?m)^-(.*)$")
 
 func normalizeDump(in string) string {

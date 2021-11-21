@@ -1,4 +1,4 @@
-// +build e2e
+//go:build e2e
 
 package e2e_test
 
@@ -6,9 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gobuffalo/pop/v6"
 	_ "github.com/jackc/pgx/v4/stdlib"
-
-	"github.com/gobuffalo/pop/v5"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
