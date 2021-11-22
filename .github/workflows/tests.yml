@@ -39,7 +39,7 @@ jobs:
           SODA_DIALECT: "mysql"
           MYSQL_PORT: 3307
         run: |
-          go install -tags sqlite github.com/pop/v5/soda@latest
+          go install -tags sqlite github.com/gobuffalo/pop/v6/soda@latest
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
           soda migrate -e $SODA_DIALECT -p ./testdata/migrations
@@ -97,7 +97,7 @@ jobs:
           SODA_DIALECT: "postgres"
           POSTGRESQL_URL: "postgres://postgres:postgres@${{job.services.postgres.host}}:${{ job.services.postgres.ports[5432] }}/pop_test?sslmode=disable"
         run: |
-          go install -tags sqlite github.com/pop/v5/soda@latest
+          go install -tags sqlite github.com/gobuffalo/pop/v6/soda@latest
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
           soda migrate -e $SODA_DIALECT -p ./testdata/migrations
@@ -151,7 +151,7 @@ jobs:
         env:
           SODA_DIALECT: "cockroach"
         run: |
-          go install -tags sqlite github.com/pop/v5/soda@latest
+          go install -tags sqlite github.com/gobuffalo/pop/v6/soda@latest
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
           soda migrate -e $SODA_DIALECT -p ./testdata/migrations
@@ -199,7 +199,7 @@ jobs:
         env:
           SODA_DIALECT: "sqlite"
         run: |
-          go install -tags sqlite github.com/pop/v5/soda@latest
+          go install -tags sqlite github.com/gobuffalo/pop/v6/soda@latest
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
           soda migrate -e $SODA_DIALECT -p ./testdata/migrations
