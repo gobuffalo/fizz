@@ -53,14 +53,14 @@ jobs:
 
       - name: Reset soda
         env:
-          SODA_DIALECT: "sqlite"
+          SODA_DIALECT: "mysql"
         run: |
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
 
       - name: Run e2e
         env:
-          SODA_DIALECT: "sqlite"
+          SODA_DIALECT: "mysql"
         run: |
           go test -tags sqlite,e2e -race ./internal/e2e/...
 
@@ -111,14 +111,14 @@ jobs:
 
       - name: Reset soda
         env:
-          SODA_DIALECT: "sqlite"
+          SODA_DIALECT: "postgres"
         run: |
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
 
       - name: Run e2e
         env:
-          SODA_DIALECT: "sqlite"
+          SODA_DIALECT: "postgres"
         run: |
           go test -tags sqlite,e2e -race ./internal/e2e/...
 
