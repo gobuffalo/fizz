@@ -51,17 +51,12 @@ jobs:
         run: |
           go test -tags sqlite -race ./...
 
-      - name: Reset soda
+      - name: Reset soda and run e2e
         env:
-          SODA_DIALECT: "mysql"
+          SODA_DIALECT: "sqlite"
         run: |
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
-
-      - name: Run e2e
-        env:
-          SODA_DIALECT: "mysql"
-        run: |
           go test -tags sqlite,e2e -race ./internal/e2e/...
 
   pg-tests:
@@ -109,17 +104,12 @@ jobs:
         run: |
           go test -tags sqlite -race ./...
 
-      - name: Reset soda
+      - name: Reset soda and run e2e
         env:
-          SODA_DIALECT: "postgres"
+          SODA_DIALECT: "sqlite"
         run: |
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
-
-      - name: Run e2e
-        env:
-          SODA_DIALECT: "postgres"
-        run: |
           go test -tags sqlite,e2e -race ./internal/e2e/...
 
   crdb-tests:
@@ -142,14 +132,9 @@ jobs:
         run: |
           mkdir -p crdb
           pushd crdb
-          wget -qO- https://binaries.cockroachdb.com/cockroach-v21.2.0.linux-amd64.tgz | tar -xz
-          sudo cp -i cockroach-v21.2.0.linux-amd64/cockroach /usr/local/bin/
-          cockroach start \
-            --insecure \
-            --listen-addr=localhost:26257 \
-            --http-addr=localhost:8080 \
-            --join=localhost:26257 \
-            --background
+          wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.0.linux-amd64.tgz | tar -xz
+          sudo cp -i cockroach-v2.1.0.linux-amd64/cockroach /usr/local/bin/
+          cockroach start --insecure --background
           popd
 
       - name: Install and run soda
@@ -167,17 +152,12 @@ jobs:
         run: |
           go test -tags sqlite -race ./...
 
-      - name: Reset soda
+      - name: Reset soda and run e2e
         env:
-          SODA_DIALECT: "cockroach"
+          SODA_DIALECT: "sqlite"
         run: |
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
-
-      - name: Run e2e
-        env:
-          SODA_DIALECT: "cockroach"
-        run: |
           go test -tags sqlite,e2e -race ./internal/e2e/...
 
   sqlite-tests:
@@ -215,15 +195,10 @@ jobs:
         run: |
           go test -tags sqlite -race ./...
 
-      - name: Reset soda
+      - name: Reset soda and run e2e
         env:
           SODA_DIALECT: "sqlite"
         run: |
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
-
-      - name: Run e2e
-        env:
-          SODA_DIALECT: "sqlite"
-        run: |
           go test -tags sqlite,e2e -race ./internal/e2e/...
