@@ -192,12 +192,14 @@ jobs:
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
           soda migrate -e $SODA_DIALECT -p ./testdata/migrations
+        shell: bash
 
       - name: Test
         env:
           SODA_DIALECT: "sqlite"
         run: |
           go test -tags sqlite -race ./...
+        shell: bash
 
       - name: Reset soda and run e2e
         env:
@@ -206,3 +208,4 @@ jobs:
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
           go test -tags sqlite,e2e -race ./internal/e2e/...
+        shell: bash
