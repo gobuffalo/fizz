@@ -18,7 +18,7 @@ type Index struct {
 func (i Index) String() string {
 	var opts map[string]interface{}
 	if i.Options == nil {
-		opts = make(map[string]interface{}, 0)
+		opts = make(map[string]interface{})
 	} else {
 		opts = i.Options
 	}

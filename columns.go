@@ -37,7 +37,7 @@ func (c Column) String() string {
 	if c.Primary || c.Options != nil {
 		var opts map[string]interface{}
 		if c.Options == nil {
-			opts = make(map[string]interface{}, 0)
+			opts = make(map[string]interface{})
 		} else {
 			opts = c.Options
 		}

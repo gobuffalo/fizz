@@ -1,7 +1,7 @@
 package e2e_test
 
 import (
-	"github.com/gobuffalo/pop/v5"
+	"github.com/gobuffalo/pop/v6"
 	"github.com/stretchr/testify/suite"
 )
 

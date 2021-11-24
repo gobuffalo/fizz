@@ -23,7 +23,7 @@ func (f ForeignKey) String() string {
 	refs := fmt.Sprintf(`{"%s": ["%s"]}`, f.References.Table, strings.Join(f.References.Columns, `", "`))
 	var opts map[string]interface{}
 	if f.Options == nil {
-		opts = make(map[string]interface{}, 0)
+		opts = make(map[string]interface{})
 	} else {
 		opts = f.Options
 	}

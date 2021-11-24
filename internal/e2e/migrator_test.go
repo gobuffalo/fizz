@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gobuffalo/pop/v5"
+	"github.com/gobuffalo/pop/v6"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -31,7 +31,7 @@ func run(s *suite.Suite, c *pop.Connection, checkSchema func()) {
 
 	// k is be the number of migrations that should run
 	s.Run("direction=up", func() {
-		for k := 0; k < len(m.Migrations["up"]); k++ {
+		for k := 0; k < len(m.UpMigrations.Migrations); k++ {
 			r := s.Require()
 
 			_, err := m.UpTo(1)
@@ -52,7 +52,7 @@ func run(s *suite.Suite, c *pop.Connection, checkSchema func()) {
 	s.Run("check=schema", checkSchema)
 
 	s.Run("direction=down", func() {
-		for k := len(m.Migrations["down"]) - 1; k >= 0; k-- {
+		for k := len(m.DownMigrations.Migrations) - 1; k >= 0; k-- {
 			r := s.Require()
 
 			r.NoError(m.Down(1))
@@ -93,7 +93,7 @@ actual SQL dump:
 		normalizeDump(string(ac))
 }
 
-var spaces = regexp.MustCompile("\\s+")
+var spaces = regexp.MustCompile(`\s+`)
 var comments = regexp.MustCompile("(?m)^-(.*)$")
 
 func normalizeDump(in string) string {

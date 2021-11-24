@@ -225,8 +225,8 @@ func Test_Table_UnFizz(t *testing.T) {
 func Test_Table_HasColumn(t *testing.T) {
 	r := require.New(t)
 	table := fizz.NewTable("users", nil)
-	table.Column("firstname", "string", nil)
-	table.Column("lastname", "string", nil)
+	r.NoError(table.Column("firstname", "string", nil))
+	r.NoError(table.Column("lastname", "string", nil))
 	r.True(table.HasColumns("firstname", "lastname"))
 	r.False(table.HasColumns("age"))
 }
@@ -234,8 +234,8 @@ func Test_Table_HasColumn(t *testing.T) {
 func Test_Table_ColumnNames(t *testing.T) {
 	r := require.New(t)
 	table := fizz.NewTable("users", nil)
-	table.Column("firstname", "string", nil)
-	table.Column("lastname", "string", nil)
+	r.NoError(table.Column("firstname", "string", nil))
+	r.NoError(table.Column("lastname", "string", nil))
 	r.Equal([]string{"firstname", "lastname"}, table.ColumnNames())
 }
 
