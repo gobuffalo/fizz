@@ -176,7 +176,7 @@ jobs:
     steps:
       - name: Install sqlite3
         run: choco install sqlite
-        if: matrix.os == "windows-latest"
+        if: matrix.os == 'windows-latest'
 
       - uses: actions/checkout@v2
       - name: Setup Go ${{ matrix.go }}
