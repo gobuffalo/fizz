@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"github.com/gobuffalo/pop/v6"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/stretchr/testify/suite"
 )
 
