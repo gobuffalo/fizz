@@ -24,7 +24,10 @@ sleep 10 # Ensure mysql is online
 
 if [[ "$GO111MODULE" != "on" ]]; then
   go get -v -tags sqlite github.com/gobuffalo/pop/...
-  # go build -v -tags sqlite -o tsoda ./soda
+  go build -v -tags sqlite -o tsoda ./soda
+else
+  go get -d github.com/gobuffalo/pop/soda
+  go build -v -tags sqlite -o tsoda github.com/gobuffalo/pop/soda
 fi
 
 function test {

@@ -32,3 +32,4 @@ migrations/schema.sql
 vendor/
 sqldumps/
 sql/
+tsoda
