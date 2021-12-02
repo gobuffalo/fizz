@@ -82,7 +82,7 @@ func (p *MsSqlServer) ChangeColumn(t fizz.Table) (string, error) {
 
 	cmds := make([]string, 0)
 	s := fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s %s", t.Name, c.Name, p.colType(c))
-	if c.Options["null"] == nil {
+	if ok, _ := c.Options["null"].(bool); !ok {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	} else {
 		s = fmt.Sprintf("%s NULL", s)

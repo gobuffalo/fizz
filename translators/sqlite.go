@@ -376,7 +376,7 @@ func (p *SQLite) withForeignKeyPreservingTempTable(newTable fizz.Table, tableNam
 
 func (p *SQLite) buildColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
-	if c.Options["null"] == nil {
+	if ok, _ := c.Options["null"].(bool); !ok {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
 	if c.Options["default"] != nil {

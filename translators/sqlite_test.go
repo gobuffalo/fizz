@@ -88,7 +88,7 @@ func (p *SQLiteSuite) Test_SQLite_CreateTable() {
 		t.Column("permissions", "text", {"null": true})
 		t.Column("age", "integer", {"null": true, "default": 40})
 		t.Column("raw", "blob", {})
-		t.Column("into", "int", {})
+		t.Column("into", "int", {"null": false})
 		t.Column("flotante", "float", {})
 		t.Column("json", "json", {})
 		t.Column("bytes", "[]byte", {})

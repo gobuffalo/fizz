@@ -3,6 +3,7 @@ package translators_test
 import (
 	"github.com/gobuffalo/fizz"
 	"github.com/gobuffalo/fizz/translators"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 var _ fizz.Translator = (*translators.Postgres)(nil)
@@ -27,7 +28,7 @@ PRIMARY KEY("id"),
 	res, _ := fizz.AString(`
 	create_table("users") {
 		t.Column("id", "integer", {"primary": true})
-		t.Column("first_name", "string", {})
+		t.Column("first_name", "string", {"null": false})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "jsonb", {"null": true})

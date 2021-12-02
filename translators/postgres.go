@@ -174,7 +174,7 @@ func (p *Postgres) DropForeignKey(t fizz.Table) (string, error) {
 func (p *Postgres) buildAddColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 
-	if c.Options["null"] == nil || c.Primary {
+	if ok, _ := c.Options["null"].(bool); !ok || c.Primary {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
 	if c.Options["default"] != nil {
@@ -191,7 +191,7 @@ func (p *Postgres) buildChangeColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" TYPE %s", c.Name, p.colType(c))
 
 	var sets []string
-	if c.Options["null"] == nil {
+	if ok, _ := c.Options["null"].(bool); !ok {
 		sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET NOT NULL", c.Name))
 	} else {
 		sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" DROP NOT NULL", c.Name))

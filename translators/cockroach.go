@@ -325,7 +325,7 @@ func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
 func (p *Cockroach) buildAddColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 
-	if c.Options["null"] == nil || c.Primary {
+	if ok, _ := c.Options["null"].(bool); !ok || c.Primary {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
 	if c.Options["default"] != nil {

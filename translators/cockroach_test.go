@@ -79,7 +79,7 @@ PRIMARY KEY("uuid"),
 
 	res, _ := fizz.AString(`
 	create_table("users") {
-		t.Column("first_name", "string", {})
+		t.Column("first_name", "string", {"null":false})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
 		t.Column("permissions", "jsonb", {"null": true})
