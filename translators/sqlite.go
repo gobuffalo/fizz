@@ -187,6 +187,11 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 
 	newIndexes := []fizz.Index{}
 	for _, i := range tableInfo.Indexes {
+		if tableInfo.HasColumns(i.Columns...) {
+			newIndexes = append(newIndexes, i)
+			continue
+		}
+
 		s, err := p.DropIndex(fizz.Table{
 			Name:    tableInfo.Name,
 			Indexes: []fizz.Index{i},
@@ -195,7 +200,7 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 			return "", err
 		}
 		sql = append(sql, s)
-		if tableInfo.HasColumns(i.Columns...) {
+		if !tableInfo.HasColumns(i.Columns...) {
 			newIndexes = append(newIndexes, i)
 		}
 	}
@@ -205,19 +210,12 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 	for _, i := range tableInfo.ForeignKeys {
 		if tableInfo.HasColumns(i.Column) {
 			newForeignKeys = append(newForeignKeys, i)
+			continue
 		}
 	}
 	tableInfo.ForeignKeys = newForeignKeys
 
-	s, err := p.withForeignKeyPreservingTempTable(*tableInfo, t.Name, func(newTable fizz.Table, tableName string) (string, error) {
-		return fmt.Sprintf("INSERT INTO \"%s\" (%s) SELECT %s FROM \"%s\";\n", newTable.Name, strings.Join(newTable.ColumnNames(), ", "), strings.Join(newTable.ColumnNames(), ", "), tableName), nil
-	})
-
-	if err != nil {
-		return "", err
-	}
-	sql = append(sql, s)
-
+	sql = append(sql, fmt.Sprintf(`ALTER TABLE "%s" DROP COLUMN "%s";`, t.Name, droppedColumn.Name))
 	return strings.Join(sql, "\n"), nil
 }
 

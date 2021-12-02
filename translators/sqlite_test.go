@@ -210,14 +210,7 @@ func (p *SQLiteSuite) Test_SQLite_AddColumn() {
 
 func (p *SQLiteSuite) Test_SQLite_DropColumn() {
 	r := p.Require()
-	ddl := `CREATE TABLE "_users_tmp" (
-"id" INTEGER PRIMARY KEY AUTOINCREMENT,
-"updated_at" DATETIME NOT NULL
-);
-INSERT INTO "_users_tmp" (id, updated_at) SELECT id, updated_at FROM "users";
-
-DROP TABLE "users";
-ALTER TABLE "_users_tmp" RENAME TO "users";`
+	ddl := `ALTER TABLE "users" DROP COLUMN "created_at";`
 
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
@@ -364,17 +357,7 @@ FOREIGN KEY (user_id) REFERENCES users (uuid) ON DELETE cascade
 );`, res)
 
 	res, _ = fizz.AString(`drop_column("user_notes","notes")`, sqt)
-	r.Equal(`CREATE TABLE "_user_notes_tmp" (
-"uuid" TEXT PRIMARY KEY,
-"user_id" char(36) NOT NULL,
-"created_at" DATETIME NOT NULL,
-"updated_at" DATETIME NOT NULL,
-FOREIGN KEY (user_id) REFERENCES users (uuid) ON DELETE cascade
-);
-INSERT INTO "_user_notes_tmp" (uuid, user_id, created_at, updated_at) SELECT uuid, user_id, created_at, updated_at FROM "user_notes";
-
-DROP TABLE "user_notes";
-ALTER TABLE "_user_notes_tmp" RENAME TO "user_notes";`, res)
+	r.Equal(`ALTER TABLE "user_notes" DROP COLUMN "notes";`, res)
 
 	res, _ = fizz.AString(`rename_table("users","user_accounts")`, sqt)
 	r.Equal(`ALTER TABLE "users" RENAME TO "user_accounts";`, res)
