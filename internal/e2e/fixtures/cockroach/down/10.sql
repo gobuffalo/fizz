@@ -9,13 +9,14 @@ CREATE TABLE public.schema_migration (
 	FAMILY "primary" (version, rowid)
 );
 -- # row 2
--- ## 208
+-- ## 239
 CREATE TABLE public.e2e_users (
 	id UUID NOT NULL,
 	created_at TIMESTAMP NOT NULL,
 	updated_at TIMESTAMP NOT NULL,
+	name VARCHAR(255) NULL,
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
-	FAMILY "primary" (id, created_at, updated_at)
+	FAMILY "primary" (id, created_at, updated_at, name)
 );
 -- # row 3
 -- ## 352

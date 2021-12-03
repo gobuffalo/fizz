@@ -22,12 +22,12 @@ CREATE TABLE public.e2e_users (
 CREATE TABLE public.e2e_user_posts (
 	id UUID NOT NULL,
 	content VARCHAR(255) NOT NULL DEFAULT '':::STRING,
-	slug VARCHAR(32) NOT NULL,
 	user_id UUID NOT NULL,
+	slug VARCHAR(64) NOT NULL,
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
-	UNIQUE INDEX e2e_user_notes_slug_idx (slug ASC),
 	INDEX e2e_user_notes_user_id_idx (user_id ASC),
-	FAMILY "primary" (id, content, slug, user_id)
+	UNIQUE INDEX e2e_user_notes_slug_idx (slug ASC),
+	FAMILY "primary" (id, content, user_id, slug)
 );
 -- # row 4
 -- ## 152

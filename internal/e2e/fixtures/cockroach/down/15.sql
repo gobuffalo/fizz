@@ -31,52 +31,12 @@ CREATE TABLE public.e2e_user_posts (
 	FAMILY "primary" (id, content, slug, published, author_id)
 );
 -- # row 4
--- ## 119
-CREATE TABLE public.e2e_flow (
-	id UUID NOT NULL,
-	CONSTRAINT "primary" PRIMARY KEY (id ASC),
-	FAMILY "primary" (id)
-);
--- # row 5
--- ## 122
-CREATE TABLE public.e2e_address (
-	id UUID NOT NULL,
-	CONSTRAINT "primary" PRIMARY KEY (id ASC),
-	FAMILY "primary" (id)
-);
--- # row 6
--- ## 492
-CREATE TABLE public.e2e_token (
-	id UUID NOT NULL,
-	token VARCHAR(64) NOT NULL,
-	e2e_address_id UUID NOT NULL,
-	issued_at TIMESTAMP NOT NULL DEFAULT '2000-01-01 00:00:00':::TIMESTAMP,
-	expires_at TIMESTAMP NOT NULL DEFAULT '2000-01-01 00:00:00':::TIMESTAMP,
-	e2e_flow_id UUID NOT NULL,
-	CONSTRAINT "primary" PRIMARY KEY (id ASC),
-	UNIQUE INDEX e2e_token_uq_idx (token ASC),
-	INDEX e2e_token_idx (token ASC),
-	FAMILY "primary" (id, token, e2e_address_id, issued_at, expires_at, e2e_flow_id)
-);
--- # row 7
 -- ## 156
 ALTER TABLE public.e2e_user_posts ADD CONSTRAINT e2e_user_notes_e2e_users_id_fk FOREIGN KEY (author_id) REFERENCES public.e2e_authors(id) ON DELETE CASCADE;
--- # row 8
--- ## 153
-ALTER TABLE public.e2e_token ADD CONSTRAINT e2e_token_e2e_address_id_fk FOREIGN KEY (e2e_address_id) REFERENCES public.e2e_address(id) ON DELETE CASCADE;
--- # row 9
--- ## 144
-ALTER TABLE public.e2e_token ADD CONSTRAINT e2e_token_e2e_flow_id_fk FOREIGN KEY (e2e_flow_id) REFERENCES public.e2e_flow(id) ON DELETE CASCADE;
--- # row 10
+-- # row 5
 -- ## 115
 -- Validate foreign key constraints. These can fail if there was unvalidated data during the SHOW CREATE ALL TABLES
--- # row 11
+-- # row 6
 -- ## 85
 ALTER TABLE public.e2e_user_posts VALIDATE CONSTRAINT e2e_user_notes_e2e_users_id_fk;
--- # row 12
--- ## 77
-ALTER TABLE public.e2e_token VALIDATE CONSTRAINT e2e_token_e2e_address_id_fk;
--- # row 13
--- ## 74
-ALTER TABLE public.e2e_token VALIDATE CONSTRAINT e2e_token_e2e_flow_id_fk;
--- # 13 rows
+-- # 6 rows

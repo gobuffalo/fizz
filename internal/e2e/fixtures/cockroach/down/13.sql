@@ -18,20 +18,20 @@ CREATE TABLE public.e2e_authors (
 	FAMILY "primary" (id, created_at, updated_at)
 );
 -- # row 3
--- ## 358
+-- ## 352
 CREATE TABLE public.e2e_user_posts (
 	id UUID NOT NULL,
 	content VARCHAR(255) NOT NULL DEFAULT '':::STRING,
 	slug VARCHAR(32) NOT NULL,
-	author_id UUID NOT NULL,
+	user_id UUID NOT NULL,
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
 	UNIQUE INDEX e2e_user_notes_slug_idx (slug ASC),
-	INDEX e2e_user_notes_user_id_idx (author_id ASC),
-	FAMILY "primary" (id, content, slug, author_id)
+	INDEX e2e_user_notes_user_id_idx (user_id ASC),
+	FAMILY "primary" (id, content, slug, user_id)
 );
 -- # row 4
--- ## 156
-ALTER TABLE public.e2e_user_posts ADD CONSTRAINT e2e_user_notes_e2e_users_id_fk FOREIGN KEY (author_id) REFERENCES public.e2e_authors(id) ON DELETE CASCADE;
+-- ## 154
+ALTER TABLE public.e2e_user_posts ADD CONSTRAINT e2e_user_notes_e2e_users_id_fk FOREIGN KEY (user_id) REFERENCES public.e2e_authors(id) ON DELETE CASCADE;
 -- # row 5
 -- ## 115
 -- Validate foreign key constraints. These can fail if there was unvalidated data during the SHOW CREATE ALL TABLES

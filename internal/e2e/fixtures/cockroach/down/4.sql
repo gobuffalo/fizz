@@ -19,16 +19,14 @@ CREATE TABLE public.e2e_users (
 	FAMILY "primary" (id, created_at, updated_at, username)
 );
 -- # row 3
--- ## 324
+-- ## 240
 CREATE TABLE public.e2e_user_notes (
 	id UUID NOT NULL,
 	user_id UUID NOT NULL,
-	slug VARCHAR(64) NOT NULL,
 	notes VARCHAR(255) NULL,
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
 	INDEX e2e_user_notes_user_id_idx (user_id ASC),
-	UNIQUE INDEX e2e_user_notes_slug_idx (slug ASC),
-	FAMILY "primary" (id, user_id, slug, notes)
+	FAMILY "primary" (id, user_id, notes)
 );
 -- # row 4
 -- ## 152

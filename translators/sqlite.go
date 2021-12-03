@@ -105,6 +105,8 @@ func (p *SQLite) RenameTable(t []fizz.Table) (string, error) {
 		return "", err
 	}
 	tableInfo.Name = newName
+	p.Schema.Delete(oldName)
+	p.Schema.SetTable(tableInfo)
 	s := fmt.Sprintf("ALTER TABLE \"%s\" RENAME TO \"%s\";", oldName, newName)
 	return s, nil
 }

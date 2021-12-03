@@ -45,18 +45,19 @@ CREATE TABLE public.e2e_address (
 	FAMILY "primary" (id)
 );
 -- # row 6
--- ## 488
+-- ## 517
 CREATE TABLE public.e2e_token (
 	id UUID NOT NULL,
 	token VARCHAR(64) NOT NULL,
 	e2e_address_id UUID NOT NULL,
 	issued_at TIMESTAMP NOT NULL DEFAULT '2000-01-01 00:00:00':::TIMESTAMP,
 	e2e_flow_id UUID NULL,
-	expires_at TIMESTAMP NOT NULL DEFAULT '2000-01-01 00:00:00':::TIMESTAMP,
+	flow_id UUID NULL,
+	expires_at TIMESTAMP NOT NULL DEFAULT '2001-01-01 00:00:00':::TIMESTAMP,
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
 	UNIQUE INDEX e2e_token_uq_idx (token ASC),
 	INDEX e2e_token_idx (token ASC),
-	FAMILY "primary" (id, token, e2e_address_id, issued_at, e2e_flow_id, expires_at)
+	FAMILY "primary" (id, token, e2e_address_id, issued_at, e2e_flow_id, flow_id, expires_at)
 );
 -- # row 7
 -- ## 156
@@ -68,15 +69,21 @@ ALTER TABLE public.e2e_token ADD CONSTRAINT e2e_token_e2e_address_id_fk FOREIGN 
 -- ## 144
 ALTER TABLE public.e2e_token ADD CONSTRAINT e2e_token_e2e_flow_id_fk FOREIGN KEY (e2e_flow_id) REFERENCES public.e2e_flow(id) ON DELETE CASCADE;
 -- # row 10
+-- ## 137
+ALTER TABLE public.e2e_token ADD CONSTRAINT e2e_token_flow_id_fk FOREIGN KEY (flow_id) REFERENCES public.e2e_flow(id) ON DELETE RESTRICT;
+-- # row 11
 -- ## 115
 -- Validate foreign key constraints. These can fail if there was unvalidated data during the SHOW CREATE ALL TABLES
--- # row 11
+-- # row 12
 -- ## 85
 ALTER TABLE public.e2e_user_posts VALIDATE CONSTRAINT e2e_user_notes_e2e_users_id_fk;
--- # row 12
+-- # row 13
 -- ## 77
 ALTER TABLE public.e2e_token VALIDATE CONSTRAINT e2e_token_e2e_address_id_fk;
--- # row 13
+-- # row 14
 -- ## 74
 ALTER TABLE public.e2e_token VALIDATE CONSTRAINT e2e_token_e2e_flow_id_fk;
--- # 13 rows
+-- # row 15
+-- ## 70
+ALTER TABLE public.e2e_token VALIDATE CONSTRAINT e2e_token_flow_id_fk;
+-- # 15 rows

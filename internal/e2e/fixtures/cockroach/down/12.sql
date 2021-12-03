@@ -9,8 +9,8 @@ CREATE TABLE public.schema_migration (
 	FAMILY "primary" (version, rowid)
 );
 -- # row 2
--- ## 210
-CREATE TABLE public.e2e_authors (
+-- ## 208
+CREATE TABLE public.e2e_users (
 	id UUID NOT NULL,
 	created_at TIMESTAMP NOT NULL,
 	updated_at TIMESTAMP NOT NULL,
@@ -30,8 +30,8 @@ CREATE TABLE public.e2e_user_posts (
 	FAMILY "primary" (id, content, slug, user_id)
 );
 -- # row 4
--- ## 154
-ALTER TABLE public.e2e_user_posts ADD CONSTRAINT e2e_user_notes_e2e_users_id_fk FOREIGN KEY (user_id) REFERENCES public.e2e_authors(id) ON DELETE CASCADE;
+-- ## 152
+ALTER TABLE public.e2e_user_posts ADD CONSTRAINT e2e_user_notes_e2e_users_id_fk FOREIGN KEY (user_id) REFERENCES public.e2e_users(id) ON DELETE CASCADE;
 -- # row 5
 -- ## 115
 -- Validate foreign key constraints. These can fail if there was unvalidated data during the SHOW CREATE ALL TABLES

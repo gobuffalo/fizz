@@ -45,18 +45,18 @@ CREATE TABLE public.e2e_address (
 	FAMILY "primary" (id)
 );
 -- # row 6
--- ## 488
+-- ## 492
 CREATE TABLE public.e2e_token (
 	id UUID NOT NULL,
 	token VARCHAR(64) NOT NULL,
 	e2e_address_id UUID NOT NULL,
 	issued_at TIMESTAMP NOT NULL DEFAULT '2000-01-01 00:00:00':::TIMESTAMP,
-	e2e_flow_id UUID NULL,
 	expires_at TIMESTAMP NOT NULL DEFAULT '2000-01-01 00:00:00':::TIMESTAMP,
+	e2e_flow_id UUID NOT NULL,
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
 	UNIQUE INDEX e2e_token_uq_idx (token ASC),
 	INDEX e2e_token_idx (token ASC),
-	FAMILY "primary" (id, token, e2e_address_id, issued_at, e2e_flow_id, expires_at)
+	FAMILY "primary" (id, token, e2e_address_id, issued_at, expires_at, e2e_flow_id)
 );
 -- # row 7
 -- ## 156

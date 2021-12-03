@@ -149,7 +149,7 @@ func runForeignKeyChecks(c *pop.Connection, r *require.Assertions) {
 
 	r.NoError(c.RawQuery("INSERT INTO e2e_address (id) VALUES (?)", "d8b79b1d-e510-4763-92b3-828244b54893").Exec())
 	r.NoError(c.RawQuery("INSERT INTO e2e_flow (id) VALUES (?)", "96a8b5f8-6b1b-4936-9b88-397cf0886235").Exec())
-	r.NoError(c.RawQuery("INSERT INTO e2e_token (id, token, e2e_flow_id, e2e_address_id) VALUES (?, ?, ?, ?)", "5ba7f9c5-c469-439a-a07c-859f7b7b3448", "1539b471f990", "96a8b5f8-6b1b-4936-9b88-397cf0886235", "d8b79b1d-e510-4763-92b3-828244b54893").Exec())
+	r.NoError(c.RawQuery("INSERT INTO e2e_tokens (id, token, e2e_flow_id, e2e_address_id) VALUES (?, ?, ?, ?)", "5ba7f9c5-c469-439a-a07c-859f7b7b3448", "1539b471f990", "96a8b5f8-6b1b-4936-9b88-397cf0886235", "d8b79b1d-e510-4763-92b3-828244b54893").Exec())
 }
 
 func runUniqueKeyChecks(c *pop.Connection, r *require.Assertions) {

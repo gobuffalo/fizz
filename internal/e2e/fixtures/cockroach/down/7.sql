@@ -20,7 +20,7 @@ CREATE TABLE public.e2e_users (
 );
 -- # row 3
 -- ## 324
-CREATE TABLE public.e2e_user_posts (
+CREATE TABLE public.e2e_user_notes (
 	id UUID NOT NULL,
 	user_id UUID NOT NULL,
 	slug VARCHAR(64) NOT NULL,
@@ -32,11 +32,11 @@ CREATE TABLE public.e2e_user_posts (
 );
 -- # row 4
 -- ## 152
-ALTER TABLE public.e2e_user_posts ADD CONSTRAINT e2e_user_notes_e2e_users_id_fk FOREIGN KEY (user_id) REFERENCES public.e2e_users(id) ON DELETE CASCADE;
+ALTER TABLE public.e2e_user_notes ADD CONSTRAINT e2e_user_notes_e2e_users_id_fk FOREIGN KEY (user_id) REFERENCES public.e2e_users(id) ON DELETE CASCADE;
 -- # row 5
 -- ## 115
 -- Validate foreign key constraints. These can fail if there was unvalidated data during the SHOW CREATE ALL TABLES
 -- # row 6
 -- ## 85
-ALTER TABLE public.e2e_user_posts VALIDATE CONSTRAINT e2e_user_notes_e2e_users_id_fk;
+ALTER TABLE public.e2e_user_notes VALIDATE CONSTRAINT e2e_user_notes_e2e_users_id_fk;
 -- # 6 rows

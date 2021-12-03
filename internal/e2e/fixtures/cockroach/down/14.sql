@@ -18,17 +18,16 @@ CREATE TABLE public.e2e_authors (
 	FAMILY "primary" (id, created_at, updated_at)
 );
 -- # row 3
--- ## 405
+-- ## 358
 CREATE TABLE public.e2e_user_posts (
 	id UUID NOT NULL,
 	content VARCHAR(255) NOT NULL DEFAULT '':::STRING,
 	slug VARCHAR(32) NOT NULL,
-	published BOOL NOT NULL DEFAULT false,
-	author_id UUID NULL,
+	author_id UUID NOT NULL,
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
 	UNIQUE INDEX e2e_user_notes_slug_idx (slug ASC),
 	INDEX e2e_user_notes_user_id_idx (author_id ASC),
-	FAMILY "primary" (id, content, slug, published, author_id)
+	FAMILY "primary" (id, content, slug, author_id)
 );
 -- # row 4
 -- ## 156
