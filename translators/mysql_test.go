@@ -229,6 +229,31 @@ func (p *MySQLSuite) Test_MySQL_AddColumnAfter() {
 	r.Equal(ddl, res)
 }
 
+func (p *MySQLSuite) Test_MySQL_AddColumnForeignKeys() {
+	r := p.Require()
+
+	ddl := "ALTER TABLE `users` ADD COLUMN `mycolumn` VARCHAR (50) NOT NULL DEFAULT 'foo' ADD CONSTRAINT projects_subscription_id_fk FOREIGN KEY (mycolumn) REFERENCES subscriptions(id, kid) ON DELETE RESTRICT ON UPDATE NO ACTION;"
+
+	_, err := fizz.AString(`
+	create_table("users") {
+		t.Column("id", "INT", {"primary": true})
+		t.Column("email", "string", {"size":20})
+	}`, myt)
+	r.NoError(err)
+
+	res, _ := fizz.AString(`
+	add_column("users", "mycolumn", "string", {"default": "foo", "size": 50, "foreign_key": {
+	  "table": "subscriptions",
+	  "columns": ["id", "kid"],
+	  "name": "projects_subscription_id_fk",
+	  "on_delete": "RESTRICT",
+	  "on_update": "NO ACTION"
+	}})`,
+		myt)
+
+	r.Equal(ddl, res)
+}
+
 func (p *MySQLSuite) Test_MySQL_AddColumnFirst() {
 	r := p.Require()
 	ddl := `ALTER TABLE ` + "`users`" + ` ADD COLUMN ` + "`mycolumn`" + ` VARCHAR (50) NOT NULL DEFAULT 'foo' FIRST;`
@@ -251,9 +276,17 @@ func (p *MySQLSuite) Test_MySQL_DropColumn() {
 
 func (p *MySQLSuite) Test_MySQL_RenameColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE ` + "`users`" + ` CHANGE ` + "`email`" + ` ` + "`email_address`" + ` varchar(50) NOT NULL DEFAULT 'foo@example.com';`
+	ddl := `ALTER TABLE ` + "`users`" + ` CHANGE ` + "`email`" + ` ` + "`email_address`" + ` VARCHAR (50) NOT NULL DEFAULT 'foo@example.com';`
 
-	res, err := fizz.AString(`rename_column("users", "email", "email_address")`, myt)
+	_, err := fizz.AString(`
+	create_table("users") {
+		t.Column("id", "INT", {"primary": true})
+		t.Column("email", "string", {"size":50, "default": "foo@example.com"})
+	}
+`, myt)
+	res, err := fizz.AString(`
+	rename_column("users", "email", "email_address")
+`, myt)
 	r.NoError(err)
 	r.Equal(ddl, res)
 }

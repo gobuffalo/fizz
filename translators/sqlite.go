@@ -1,14 +1,15 @@
 package translators
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
-	"strings"
-
 	"github.com/gobuffalo/fizz"
+	"strings"
 )
 
 type SQLite struct {
-	Schema SchemaQuery
+	Schema fizz.SchemaQuery
 }
 
 func NewSQLite(url string) *SQLite {
@@ -22,6 +23,10 @@ func NewSQLite(url string) *SQLite {
 	return &SQLite{
 		Schema: schema,
 	}
+}
+
+func (p *SQLite) SchemaQuery() fizz.SchemaQuery {
+	return p.Schema
 }
 
 func (SQLite) Name() string {
@@ -45,7 +50,11 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 				return "", fmt.Errorf("can not use %s as a primary key", c.ColType)
 			}
 		} else {
-			s = p.buildColumn(c)
+			var err error
+			s, err = p.buildColumn(c, false, nil)
+			if err != nil {
+				return "", err
+			}
 		}
 		cols = append(cols, s)
 	}
@@ -102,7 +111,6 @@ func (p *SQLite) RenameTable(t []fizz.Table) (string, error) {
 
 func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
 	tableInfo, err := p.Schema.TableInfo(t.Name)
-
 	if err != nil {
 		return "", err
 	}
@@ -132,9 +140,6 @@ func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
 
 	// We do not need to use withForeignKeyPreservingTempTable here because this will not touch any foreign keys!
 	s, err := p.withForeignKeyPreservingTempTable(*tableInfo, t.Name, func(newTable fizz.Table, tableName string) (string, error) {
-		if t.Columns[0].Name == "slug" {
-			fmt.Print("asdf")
-		}
 		return fmt.Sprintf("INSERT INTO \"%s\" (%s) SELECT %s FROM \"%s\";", newTable.Name, strings.Join(newTable.ColumnNames(), ", "), strings.Join(newTable.ColumnNames(), ", "), tableName), nil
 	})
 
@@ -143,7 +148,6 @@ func (p *SQLite) ChangeColumn(t fizz.Table) (string, error) {
 	}
 
 	sql = append(sql, s)
-
 	return strings.Join(sql, "\n"), nil
 }
 
@@ -160,7 +164,12 @@ func (p *SQLite) AddColumn(t fizz.Table) (string, error) {
 
 	tableInfo.Columns = append(tableInfo.Columns, c)
 
-	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", t.Name, p.buildColumn(c))
+	bc, err := p.buildColumn(c, true, tableInfo)
+	if err != nil {
+		return "", err
+	}
+
+	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", t.Name, bc)
 	return s, nil
 }
 
@@ -187,11 +196,6 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 
 	newIndexes := []fizz.Index{}
 	for _, i := range tableInfo.Indexes {
-		if tableInfo.HasColumns(i.Columns...) {
-			newIndexes = append(newIndexes, i)
-			continue
-		}
-
 		s, err := p.DropIndex(fizz.Table{
 			Name:    tableInfo.Name,
 			Indexes: []fizz.Index{i},
@@ -200,7 +204,7 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 			return "", err
 		}
 		sql = append(sql, s)
-		if !tableInfo.HasColumns(i.Columns...) {
+		if tableInfo.HasColumns(i.Columns...) {
 			newIndexes = append(newIndexes, i)
 		}
 	}
@@ -210,12 +214,19 @@ func (p *SQLite) DropColumn(t fizz.Table) (string, error) {
 	for _, i := range tableInfo.ForeignKeys {
 		if tableInfo.HasColumns(i.Column) {
 			newForeignKeys = append(newForeignKeys, i)
-			continue
 		}
 	}
 	tableInfo.ForeignKeys = newForeignKeys
 
-	sql = append(sql, fmt.Sprintf(`ALTER TABLE "%s" DROP COLUMN "%s";`, t.Name, droppedColumn.Name))
+	s, err := p.withForeignKeyPreservingTempTable(*tableInfo, t.Name, func(newTable fizz.Table, tableName string) (string, error) {
+		return fmt.Sprintf("INSERT INTO \"%s\" (%s) SELECT %s FROM \"%s\";\n", newTable.Name, strings.Join(newTable.ColumnNames(), ", "), strings.Join(newTable.ColumnNames(), ", "), tableName), nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+	sql = append(sql, s)
+
 	return strings.Join(sql, "\n"), nil
 }
 
@@ -374,18 +385,61 @@ func (p *SQLite) withForeignKeyPreservingTempTable(newTable fizz.Table, tableNam
 	), "\n"), nil
 }
 
-func (p *SQLite) buildColumn(c fizz.Column) string {
+type foreignKeyColumnOption struct {
+	Table    string   `json:"table"`
+	Columns  []string `json:"columns"`
+	Name     string   `json:"name"`
+	OnDelete string   `json:"on_delete"`
+	OnUpdate string   `json:"on_update"`
+}
+
+func (p *SQLite) buildColumn(c fizz.Column, respectForeignKeys bool, tableInfo *fizz.Table) (string, error) {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 	if ok, _ := c.Options["null"].(bool); !ok {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
+
 	if c.Options["default"] != nil {
 		s = fmt.Sprintf("%s DEFAULT '%v'", s, c.Options["default"])
 	}
 	if c.Options["default_raw"] != nil {
 		s = fmt.Sprintf("%s DEFAULT %s", s, c.Options["default_raw"])
 	}
-	return s
+
+	if c.Options["foreign_key"] != nil && respectForeignKeys {
+		var b bytes.Buffer
+		var co foreignKeyColumnOption
+		if err := json.NewEncoder(&b).Encode(c.Options["foreign_key"]); err != nil {
+			return "", err
+		}
+		if err := json.NewDecoder(&b).Decode(&co); err != nil {
+			return "", err
+		}
+
+		s += fmt.Sprintf(" CONSTRAINT %s REFERENCES %s (%s)", co.Name, co.Table, strings.Join(co.Columns, ", "))
+
+		options := map[string]interface{}{}
+		if len(co.OnDelete) > 0 {
+			s += fmt.Sprintf(" ON DELETE %s", co.OnDelete)
+			options["on_delete"] = co.OnDelete
+		}
+
+		if len(co.OnUpdate) > 0 {
+			s += fmt.Sprintf(" ON UPDATE %s", co.OnUpdate)
+			options["on_update"] = co.OnUpdate
+		}
+
+		tableInfo.ForeignKeys = append(tableInfo.ForeignKeys, fizz.ForeignKey{
+			Name:   co.Name,
+			Column: c.Name,
+			References: fizz.ForeignKeyRef{
+				Table:   co.Table,
+				Columns: co.Columns,
+			},
+			Options: options,
+		})
+	}
+	return s, nil
 }
 
 func (p *SQLite) colType(c fizz.Column) string {

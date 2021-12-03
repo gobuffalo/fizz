@@ -57,7 +57,7 @@ For example for PostgreSQL you could pass `jsonb`and it will be supported, howev
 #### Supported Options:
 
 * `size` - The size of the column. For example if you wanted a `varchar(50)` in Postgres you would do: `t.Column("column_name", "string", {"size": 50})`
-* `null` - By default columns are not allowed to be `null`.
+* `null` - If set to `true` will mark the field as `NULL`able. Otherwise, the column is `NOT NULL` (e.g. if not set or `false`).
 * `default` - The default value you want for this column. By default this is `null`.
 * `default_raw` - The default value defined as a database function.
 * `after` - (MySQL Only) Add a column after another column in the table. `example: {"after":"created_at"}`
@@ -94,6 +94,20 @@ add_column("table_name", "column_name", "string", {})
 ```
 
 See [above](#column-info) for more details on column types and options.
+
+You can also add a column with a foreign key constraint. This is particularly
+useful for SQLite which does not support foreign keys constraint updates without
+recreating the table:
+
+```
+add_column("table_name", "column_name", "string", {"null": true, "size": 50, "foreign_key": {
+  "table": "target_table_name",
+  "columns": ["target_column", "target_column_2", "target_column_3"],
+  "name": "the_index_name",
+  "on_delete": "RESTRICT",
+  "on_update": "NO ACTION"
+}})
+```
 
 ## Alter a column
 
@@ -165,7 +179,6 @@ add_foreign_key("table_name", "field", {"ref_table_name": ["ref_column"]}, {
     "on_delete": "action",
     "on_update": "action",
 })
-
 ```
 
 #### Supported Options

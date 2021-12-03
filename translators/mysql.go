@@ -1,6 +1,8 @@
 package translators
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -10,7 +12,7 @@ import (
 
 // MySQL is a MySQL-specific translator.
 type MySQL struct {
-	Schema         SchemaQuery
+	Schema         fizz.SchemaQuery
 	strDefaultSize int
 }
 
@@ -93,21 +95,46 @@ func (p *MySQL) AddColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) == 0 {
 		return "", fmt.Errorf("not enough columns supplied")
 	}
-
-	if _, ok := t.Columns[0].Options["first"]; ok {
-		c := t.Columns[0]
-		s := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s FIRST;", p.escapeIdentifier(t.Name), p.buildColumn(c))
-		return s, nil
-	}
-
-	if val, ok := t.Columns[0].Options["after"]; ok {
-		c := t.Columns[0]
-		s := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s AFTER `%s`;", p.escapeIdentifier(t.Name), p.buildColumn(c), val)
-		return s, nil
-	}
-
 	c := t.Columns[0]
-	s := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s;", p.escapeIdentifier(t.Name), p.buildColumn(c))
+
+	var constraint string
+	if c.Options["foreign_key"] != nil {
+		var b bytes.Buffer
+		var co foreignKeyColumnOption
+		if err := json.NewEncoder(&b).Encode(c.Options["foreign_key"]); err != nil {
+			return "", err
+		}
+		if err := json.NewDecoder(&b).Decode(&co); err != nil {
+			return "", err
+		}
+
+		constraint += fmt.Sprintf(", ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s(%s)", co.Name, c.Name, co.Table, strings.Join(co.Columns, ", "))
+
+		options := map[string]interface{}{}
+		if len(co.OnDelete) > 0 {
+			constraint += fmt.Sprintf(" ON DELETE %s", co.OnDelete)
+			options["on_delete"] = co.OnDelete
+		}
+
+		if len(co.OnUpdate) > 0 {
+			constraint += fmt.Sprintf(" ON UPDATE %s", co.OnUpdate)
+			options["on_update"] = co.OnUpdate
+		}
+	}
+
+	if _, ok := c.Options["first"]; ok {
+		c := t.Columns[0]
+		s := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s%s FIRST;", p.escapeIdentifier(t.Name), p.buildColumn(c), constraint)
+		return s, nil
+	}
+
+	if val, ok := c.Options["after"]; ok {
+		c := t.Columns[0]
+		s := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s%s AFTER `%s`;", p.escapeIdentifier(t.Name), p.buildColumn(c), constraint, val)
+		return s, nil
+	}
+
+	s := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s%s;", p.escapeIdentifier(t.Name), p.buildColumn(c), constraint)
 	return s, nil
 }
 
@@ -131,11 +158,14 @@ func (p *MySQL) RenameColumn(t fizz.Table) (string, error) {
 		return "", err
 	}
 	var c fizz.Column
-	for _, c = range ti.Columns {
+	var k int
+	for k, c = range ti.Columns {
 		if c.Name == oc.Name {
+			ti.Columns[k].Name = nc.Name
 			break
 		}
 	}
+
 	col := p.buildColumn(c)
 	col = strings.Replace(col, oc.Name, fmt.Sprintf("%s` `%s", oc.Name, nc.Name), -1)
 	s := fmt.Sprintf("ALTER TABLE %s CHANGE %s;", p.escapeIdentifier(t.Name), col)
@@ -213,6 +243,7 @@ func (p *MySQL) buildColumn(c fizz.Column) string {
 	if ok, _ := c.Options["null"].(bool); !ok || c.Primary {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
+
 	if c.Options["default"] != nil {
 		d := fmt.Sprintf("%#v", c.Options["default"])
 		re := regexp.MustCompile("^(\")(.+)(\")$")

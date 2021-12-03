@@ -13,7 +13,7 @@ services:
     ports:
       - "3306:3306"
   postgres:
-    image: postgres:9.6
+    image: postgres:10.19
     environment:
       - POSTGRES_DB=pop_test
       - POSTGRES_PASSWORD=postgres
@@ -22,10 +22,10 @@ services:
     volumes:
       - ./sqldumps:/docker-entrypoint-initdb.d
   cockroach:
-    image: cockroachdb/cockroach:v19.2.10
+    image: cockroachdb/cockroach:v21.1.2
     ports:
       - "26257:26257"
       - "8080:8080"
     volumes:
       - "./cockroach-data/roach1:/cockroach/cockroach-data"
-    command: start --insecure
+    command: start-single-node --insecure

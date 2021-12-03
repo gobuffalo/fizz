@@ -1,0 +1,5 @@
+{{ if eq .Dialect "mysql" }}
+drop_foreign_key("e2e_token", "e2e_token_flow_id_fk")
+{{ end }}
+drop_column("e2e_token", "flow_id")
+change_column("e2e_token", "expires_at", "timestamp", { "default": "2000-01-01 00:00:00" })

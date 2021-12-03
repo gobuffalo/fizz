@@ -1,6 +1,8 @@
 package translators
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -34,7 +36,11 @@ func (p *Postgres) CreateTable(t fizz.Table) (string, error) {
 				return "", fmt.Errorf("can not use %s as a primary key", c.ColType)
 			}
 		}
-		cols = append(cols, p.buildAddColumn(c))
+		stmt, err := p.buildAddColumn(c, false)
+		if err != nil {
+			return "", err
+		}
+		cols = append(cols, stmt)
 		if c.Primary {
 			cols = append(cols, fmt.Sprintf(`PRIMARY KEY("%s")`, c.Name))
 		}
@@ -95,7 +101,11 @@ func (p *Postgres) AddColumn(t fizz.Table) (string, error) {
 		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
-	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", t.Name, p.buildAddColumn(c))
+	stmt, err := p.buildAddColumn(c, true)
+	if err != nil {
+		return "", err
+	}
+	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;", t.Name, stmt)
 	return s, nil
 }
 
@@ -171,12 +181,13 @@ func (p *Postgres) DropForeignKey(t fizz.Table) (string, error) {
 	return s, nil
 }
 
-func (p *Postgres) buildAddColumn(c fizz.Column) string {
+func (p *Postgres) buildAddColumn(c fizz.Column, respectForeignKeys bool) (string, error) {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 
 	if ok, _ := c.Options["null"].(bool); !ok || c.Primary {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
+
 	if c.Options["default"] != nil {
 		s = fmt.Sprintf("%s DEFAULT '%v'", s, c.Options["default"])
 	}
@@ -184,7 +195,31 @@ func (p *Postgres) buildAddColumn(c fizz.Column) string {
 		s = fmt.Sprintf("%s DEFAULT %s", s, c.Options["default_raw"])
 	}
 
-	return s
+	if c.Options["foreign_key"] != nil && respectForeignKeys {
+		var b bytes.Buffer
+		var co foreignKeyColumnOption
+		if err := json.NewEncoder(&b).Encode(c.Options["foreign_key"]); err != nil {
+			return "", err
+		}
+		if err := json.NewDecoder(&b).Decode(&co); err != nil {
+			return "", err
+		}
+
+		s += fmt.Sprintf(" CONSTRAINT %s REFERENCES %s (%s)", co.Name, co.Table, strings.Join(co.Columns, ", "))
+
+		options := map[string]interface{}{}
+		if len(co.OnDelete) > 0 {
+			s += fmt.Sprintf(" ON DELETE %s", co.OnDelete)
+			options["on_delete"] = co.OnDelete
+		}
+
+		if len(co.OnUpdate) > 0 {
+			s += fmt.Sprintf(" ON UPDATE %s", co.OnUpdate)
+			options["on_update"] = co.OnUpdate
+		}
+	}
+
+	return s, nil
 }
 
 func (p *Postgres) buildChangeColumn(c fizz.Column) string {

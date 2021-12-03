@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.21, for osx10.15 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.27, for macos12.0 (arm64)
 --
 -- Host: 127.0.0.1    Database: pop_test
 -- ------------------------------------------------------
--- Server version	5.7.31
+-- Server version	5.7.36
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -28,7 +28,7 @@ CREATE TABLE `e2e_users` (
   `updated_at` datetime NOT NULL,
   `username` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -41,7 +41,7 @@ DROP TABLE IF EXISTS `schema_migration`;
 CREATE TABLE `schema_migration` (
   `version` varchar(14) NOT NULL,
   UNIQUE KEY `schema_migration_version_idx` (`version`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -53,4 +53,4 @@ CREATE TABLE `schema_migration` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-09-03 11:40:22
+-- Dump completed on 2021-12-03 10:52:21

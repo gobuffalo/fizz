@@ -192,6 +192,23 @@ func (p *CockroachSuite) Test_Cockroach_AddColumn() {
 	r.Equal(ddl, res)
 }
 
+func (p *CockroachSuite) Test_Cockroach_AddColumnForeignKeys() {
+	r := p.Require()
+
+	ddl := `ALTER TABLE "users" ADD COLUMN "mycolumn" VARCHAR (50) NOT NULL DEFAULT 'foo' CONSTRAINT projects_subscription_id_fk REFERENCES subscriptions (id, kid) ON DELETE RESTRICT ON UPDATE NO ACTION;COMMIT TRANSACTION;BEGIN TRANSACTION;`
+	schema.schema["users"] = &fizz.Table{}
+
+	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50, "foreign_key": {
+  "table": "subscriptions",
+  "columns": ["id", "kid"],
+  "name": "projects_subscription_id_fk",
+  "on_delete": "RESTRICT",
+  "on_update": "NO ACTION"
+}})`, p.crdbt())
+
+	r.Equal(ddl, res)
+}
+
 func (p *CockroachSuite) Test_Cockroach_DropColumn() {
 	r := p.Require()
 	ddl := `ALTER TABLE "table_name" DROP COLUMN "column_name";COMMIT TRANSACTION;BEGIN TRANSACTION;`

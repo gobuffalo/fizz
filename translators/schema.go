@@ -7,21 +7,11 @@ import (
 	"github.com/gobuffalo/fizz"
 )
 
-type SchemaQuery interface {
-	ReplaceSchema(map[string]*fizz.Table)
-	Build() error
-	TableInfo(string) (*fizz.Table, error)
-	ReplaceColumn(table string, oldColumn string, newColumn fizz.Column) error
-	ColumnInfo(table string, column string) (*fizz.Column, error)
-	IndexInfo(table string, idx string) (*fizz.Index, error)
-	Delete(string)
-	SetTable(*fizz.Table)
-	DeleteColumn(string, string)
-}
+type SchemaQuery = fizz.SchemaQuery
 
 type Schema struct {
 	schema  map[string]*fizz.Table
-	Builder SchemaQuery
+	Builder fizz.SchemaQuery
 	Name    string
 	URL     string
 }
@@ -36,6 +26,10 @@ func CreateSchema(name string, url string, schema map[string]*fizz.Table) Schema
 
 func (s *Schema) ReplaceSchema(newSchema map[string]*fizz.Table) {
 	s.schema = newSchema
+}
+
+func (s *Schema) ResetCache() {
+	s.schema = map[string]*fizz.Table{}
 }
 
 func (s *Schema) Build() error {

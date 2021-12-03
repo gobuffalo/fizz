@@ -22,6 +22,9 @@ type fauxSchema struct {
 	schema map[string]*fizz.Table
 }
 
+func (s *fauxSchema) ResetCache() {
+}
+
 func (s *fauxSchema) Build() error {
 	return nil
 }
@@ -50,8 +53,8 @@ func (p *fauxSchema) Delete(table string) {
 	delete(p.schema, table)
 }
 
-func (s *fauxSchema) SetTable(table *fizz.Table) {
-	s.schema[table.Name] = table
+func (p *fauxSchema) SetTable(table *fizz.Table) {
+	p.schema[table.Name] = table
 }
 
 func (p *fauxSchema) TableInfo(table string) (*fizz.Table, error) {
@@ -208,9 +211,33 @@ func (p *SQLiteSuite) Test_SQLite_AddColumn() {
 	r.Equal(ddl, res)
 }
 
+func (p *SQLiteSuite) Test_SQLite_AddColumnWithForeignKeys() {
+	r := p.Require()
+
+	ddl := `ALTER TABLE "users" ADD COLUMN "mycolumn" TEXT NOT NULL DEFAULT 'foo' CONSTRAINT projects_subscription_id_fk REFERENCES subscriptions (id, kid) ON DELETE RESTRICT ON UPDATE NO ACTION;`
+	schema.schema["users"] = &fizz.Table{}
+
+	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50, "foreign_key": {
+  "table": "subscriptions",
+  "columns": ["id", "kid"],
+  "name": "projects_subscription_id_fk",
+  "on_delete": "RESTRICT",
+  "on_update": "NO ACTION"
+}})`, sqt)
+
+	r.Equal(ddl, res)
+}
+
 func (p *SQLiteSuite) Test_SQLite_DropColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE "users" DROP COLUMN "created_at";`
+	ddl := `CREATE TABLE "_users_tmp" (
+"id" INTEGER PRIMARY KEY AUTOINCREMENT,
+"updated_at" DATETIME NOT NULL
+);
+INSERT INTO "_users_tmp" (id, updated_at) SELECT id, updated_at FROM "users";
+
+DROP TABLE "users";
+ALTER TABLE "_users_tmp" RENAME TO "users";`
 
 	schema.schema["users"] = &fizz.Table{
 		Name: "users",
@@ -357,7 +384,17 @@ FOREIGN KEY (user_id) REFERENCES users (uuid) ON DELETE cascade
 );`, res)
 
 	res, _ = fizz.AString(`drop_column("user_notes","notes")`, sqt)
-	r.Equal(`ALTER TABLE "user_notes" DROP COLUMN "notes";`, res)
+	r.Equal(`CREATE TABLE "_user_notes_tmp" (
+"uuid" TEXT PRIMARY KEY,
+"user_id" char(36) NOT NULL,
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL,
+FOREIGN KEY (user_id) REFERENCES users (uuid) ON DELETE cascade
+);
+INSERT INTO "_user_notes_tmp" (uuid, user_id, created_at, updated_at) SELECT uuid, user_id, created_at, updated_at FROM "user_notes";
+
+DROP TABLE "user_notes";
+ALTER TABLE "_user_notes_tmp" RENAME TO "user_notes";`, res)
 
 	res, _ = fizz.AString(`rename_table("users","user_accounts")`, sqt)
 	r.Equal(`ALTER TABLE "users" RENAME TO "user_accounts";`, res)

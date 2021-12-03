@@ -70,7 +70,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:14
+        image: postgres:10.19
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -132,9 +132,9 @@ jobs:
         run: |
           mkdir -p crdb
           pushd crdb
-          wget -qO- https://binaries.cockroachdb.com/cockroach-v2.1.0.linux-amd64.tgz | tar -xz
-          sudo cp -i cockroach-v2.1.0.linux-amd64/cockroach /usr/local/bin/
-          cockroach start --insecure --background
+          wget -qO- https://binaries.cockroachdb.com/cockroach-v21.2.2.linux-amd64.tgz | tar -xz
+          sudo cp -i cockroach-v21.2.2.linux-amd64/cockroach /usr/local/bin/
+          cockroach start-single-node --insecure --background
           popd
 
       - name: Install and run soda

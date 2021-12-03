@@ -1,0 +1,8 @@
+add_column("e2e_token", "flow_id", "uuid", {"null": true, "foreign_key": {
+  "table": "e2e_flow",
+  "columns": ["id"],
+  "name": "e2e_token_flow_id_fk",
+  "on_delete": "RESTRICT",
+  "on_update": "NO ACTION"
+}})
+change_column("e2e_token", "expires_at", "timestamp", { "default": "2001-01-01 00:00:00" })

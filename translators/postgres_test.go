@@ -217,6 +217,23 @@ func (p *PostgreSQLSuite) Test_Postgres_AddColumn() {
 	r.Equal(ddl, res)
 }
 
+func (p *PostgreSQLSuite) Test_Postgres_AddColumnForeignKeys() {
+	r := p.Require()
+
+	ddl := `ALTER TABLE "users" ADD COLUMN "mycolumn" VARCHAR (50) NOT NULL DEFAULT 'foo' CONSTRAINT projects_subscription_id_fk REFERENCES subscriptions (id, kid) ON DELETE RESTRICT ON UPDATE NO ACTION;`
+	schema.schema["users"] = &fizz.Table{}
+
+	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50, "foreign_key": {
+  "table": "subscriptions",
+  "columns": ["id", "kid"],
+  "name": "projects_subscription_id_fk",
+  "on_delete": "RESTRICT",
+  "on_update": "NO ACTION"
+}})`, pgt)
+
+	r.Equal(ddl, res)
+}
+
 func (p *PostgreSQLSuite) Test_Postgres_DropColumn() {
 	r := p.Require()
 	ddl := `ALTER TABLE "table_name" DROP COLUMN "column_name";`

@@ -1,6 +1,8 @@
 package translators
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -8,7 +10,7 @@ import (
 )
 
 type Cockroach struct {
-	Schema SchemaQuery
+	Schema fizz.SchemaQuery
 }
 
 func NewCockroach(url string, name string) *Cockroach {
@@ -27,6 +29,10 @@ func (Cockroach) Name() string {
 	return "cockroach"
 }
 
+func (p *Cockroach) SchemaQuery() fizz.SchemaQuery {
+	return p.Schema
+}
+
 func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 	p.Schema.SetTable(&t)
 	sql := []string{}
@@ -42,7 +48,11 @@ func (p *Cockroach) CreateTable(t fizz.Table) (string, error) {
 				return "", fmt.Errorf("can not use %s as a primary key", c.ColType)
 			}
 		}
-		cols = append(cols, p.buildAddColumn(c))
+		stmt, err := p.buildAddColumn(c, false)
+		if err != nil {
+			return "", err
+		}
+		cols = append(cols, stmt)
 		if c.Primary {
 			cols = append(cols, fmt.Sprintf(`PRIMARY KEY("%s")`, c.Name))
 		}
@@ -138,7 +148,12 @@ func (p *Cockroach) ChangeColumn(t fizz.Table) (string, error) {
 			newCol.Options["null"] = true
 		}
 
-		createColumnSQL := fmt.Sprintf(`ALTER TABLE "%s" ADD COLUMN %s;COMMIT TRANSACTION;BEGIN TRANSACTION;`, table.Name, p.buildAddColumn(newCol))
+		stmt, err := p.buildAddColumn(newCol, true)
+		if err != nil {
+			return "", err
+		}
+
+		createColumnSQL := fmt.Sprintf(`ALTER TABLE "%s" ADD COLUMN %s;COMMIT TRANSACTION;BEGIN TRANSACTION;`, table.Name, stmt)
 		ins := fmt.Sprintf(`UPDATE "%s" SET "%s" = "%s";COMMIT TRANSACTION;BEGIN TRANSACTION;`, t.Name, c.Name, tempCol)
 
 		sql := []string{createColumnSQL, ins}
@@ -164,7 +179,11 @@ func (p *Cockroach) AddColumn(t fizz.Table) (string, error) {
 		return "", fmt.Errorf("not enough columns supplied")
 	}
 	c := t.Columns[0]
-	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, p.buildAddColumn(c))
+	stmt, err := p.buildAddColumn(c, true)
+	if err != nil {
+		return "", err
+	}
+	s := fmt.Sprintf("ALTER TABLE \"%s\" ADD COLUMN %s;COMMIT TRANSACTION;BEGIN TRANSACTION;", t.Name, stmt)
 
 	// Update schema cache if we can
 	tableInfo, err := p.Schema.TableInfo(t.Name)
@@ -322,12 +341,13 @@ func (p *Cockroach) DropForeignKey(t fizz.Table) (string, error) {
 	return s, nil
 }
 
-func (p *Cockroach) buildAddColumn(c fizz.Column) string {
+func (p *Cockroach) buildAddColumn(c fizz.Column, respectForeignKeys bool) (string, error) {
 	s := fmt.Sprintf("\"%s\" %s", c.Name, p.colType(c))
 
 	if ok, _ := c.Options["null"].(bool); !ok || c.Primary {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
+
 	if c.Options["default"] != nil {
 		s = fmt.Sprintf("%s DEFAULT '%v'", s, c.Options["default"])
 	}
@@ -335,7 +355,31 @@ func (p *Cockroach) buildAddColumn(c fizz.Column) string {
 		s = fmt.Sprintf("%s DEFAULT %s", s, c.Options["default_raw"])
 	}
 
-	return s
+	if c.Options["foreign_key"] != nil && respectForeignKeys {
+		var b bytes.Buffer
+		var co foreignKeyColumnOption
+		if err := json.NewEncoder(&b).Encode(c.Options["foreign_key"]); err != nil {
+			return "", err
+		}
+		if err := json.NewDecoder(&b).Decode(&co); err != nil {
+			return "", err
+		}
+
+		s += fmt.Sprintf(" CONSTRAINT %s REFERENCES %s (%s)", co.Name, co.Table, strings.Join(co.Columns, ", "))
+
+		options := map[string]interface{}{}
+		if len(co.OnDelete) > 0 {
+			s += fmt.Sprintf(" ON DELETE %s", co.OnDelete)
+			options["on_delete"] = co.OnDelete
+		}
+
+		if len(co.OnUpdate) > 0 {
+			s += fmt.Sprintf(" ON UPDATE %s", co.OnUpdate)
+			options["on_update"] = co.OnUpdate
+		}
+	}
+
+	return s, nil
 }
 
 func (p *Cockroach) buildChangeColumn(oldCol fizz.Column, c fizz.Column) fizz.Column {

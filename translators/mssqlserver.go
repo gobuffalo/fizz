@@ -200,6 +200,7 @@ func (p *MsSqlServer) buildAddColumn(tableName string, c fizz.Column) string {
 	if c.Options["null"] == nil {
 		s = fmt.Sprintf("%s NOT NULL", s)
 	}
+
 	setDefault := c.Options["default"] != nil || c.Options["default_raw"] != nil
 	if setDefault {
 		dfConstraintName := fmt.Sprintf("DF_%s_%s", tableName, c.Name)

@@ -70,7 +70,7 @@ updated_at DATETIME NOT NULL
 );`
 
 	res, _ := fizz.AString(`
-	create_table("users") {
+	create_table("users") {1
 		t.Column("first_name", "string", {})
 		t.Column("last_name", "string", {})
 		t.Column("email", "string", {"size":20})
@@ -93,7 +93,7 @@ updated_at DATETIME NOT NULL
 CREATE TABLE profiles (
 id INT PRIMARY KEY IDENTITY(1,1),
 user_id INT NOT NULL,
-first_name NVARCHAR (255) NOT NULL,
+first_name NVARCHAR (255),
 last_name NVARCHAR (255) NOT NULL,
 created_at DATETIME NOT NULL,
 updated_at DATETIME NOT NULL
@@ -108,7 +108,7 @@ ALTER TABLE profiles ADD CONSTRAINT profiles_users_id_fk FOREIGN KEY (user_id) R
 	create_table("profiles") {
 		t.Column("id", "INT", {"primary": true})
 		t.Column("user_id", "INT", {})
-		t.Column("first_name", "string", {})
+		t.Column("first_name", "string", {"null": false})
 		t.Column("last_name", "string", {})
 		t.ForeignKey("user_id", {"users": ["id"]}, {})
 	}
@@ -122,7 +122,7 @@ func (p *MsSqlServerSQLSuite) Test_MsSqlServer_CreateTables_WithCompositePrimary
 user_id INT NOT NULL,
 profile_id INT NOT NULL,
 created_at DATETIME NOT NULL,
-updated_at DATETIME NOT NULL
+updated_at DATETIME NOT NULL,
 PRIMARY KEY([user_id], [profile_id])
 );`
 

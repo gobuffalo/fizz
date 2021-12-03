@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS "e2e_user_posts" (
 "published" bool NOT NULL DEFAULT FALSE,
 FOREIGN KEY (author_id) REFERENCES e2e_authors (id) ON UPDATE NO ACTION ON DELETE CASCADE
 );
-CREATE INDEX "e2e_user_notes_user_id_idx" ON "e2e_user_posts" (author_id);
 CREATE UNIQUE INDEX "e2e_user_notes_slug_idx" ON "e2e_user_posts" (slug);
+CREATE INDEX "e2e_user_notes_user_id_idx" ON "e2e_user_posts" (author_id);
 CREATE TABLE IF NOT EXISTS "e2e_flow" (
 "id" TEXT PRIMARY KEY
 );
