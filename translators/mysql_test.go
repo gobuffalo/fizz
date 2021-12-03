@@ -232,7 +232,7 @@ func (p *MySQLSuite) Test_MySQL_AddColumnAfter() {
 func (p *MySQLSuite) Test_MySQL_AddColumnForeignKeys() {
 	r := p.Require()
 
-	ddl := "ALTER TABLE `users` ADD COLUMN `mycolumn` VARCHAR (50) NOT NULL DEFAULT 'foo' ADD CONSTRAINT projects_subscription_id_fk FOREIGN KEY (mycolumn) REFERENCES subscriptions(id, kid) ON DELETE RESTRICT ON UPDATE NO ACTION;"
+	ddl := "ALTER TABLE `users` ADD COLUMN `mycolumn` VARCHAR (50) NOT NULL DEFAULT 'foo', ADD CONSTRAINT projects_subscription_id_fk FOREIGN KEY (mycolumn) REFERENCES subscriptions(id, kid) ON DELETE RESTRICT ON UPDATE NO ACTION;"
 
 	_, err := fizz.AString(`
 	create_table("users") {
@@ -276,14 +276,16 @@ func (p *MySQLSuite) Test_MySQL_DropColumn() {
 
 func (p *MySQLSuite) Test_MySQL_RenameColumn() {
 	r := p.Require()
-	ddl := `ALTER TABLE ` + "`users`" + ` CHANGE ` + "`email`" + ` ` + "`email_address`" + ` VARCHAR (50) NOT NULL DEFAULT 'foo@example.com';`
+	ddl := `ALTER TABLE ` + "`users`" + ` CHANGE ` + "`email`" + ` ` + "`email_address`" + ` VARCHAR(50) NOT NULL DEFAULT 'foo@example.com';`
 
-	_, err := fizz.AString(`
-	create_table("users") {
-		t.Column("id", "INT", {"primary": true})
-		t.Column("email", "string", {"size":50, "default": "foo@example.com"})
-	}
-`, myt)
+	myt.Schema.SetTable(&fizz.Table{Name: "users", Columns: []fizz.Column{
+		{
+			Name:    "email",
+			ColType: "VARCHAR(50)",
+			Primary: false,
+			Options: map[string]interface{}{"default": "foo@example.com"},
+		},
+	}})
 	res, err := fizz.AString(`
 	rename_column("users", "email", "email_address")
 `, myt)
