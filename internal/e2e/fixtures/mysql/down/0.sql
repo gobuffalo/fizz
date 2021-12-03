@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 8.0.27, for macos12.0 (arm64)
+-- MySQL dump 10.13  Distrib 8.0.27, for macos11.6 (x86_64)
 --
 -- Host: 127.0.0.1    Database: pop_test
 -- ------------------------------------------------------
@@ -37,4 +37,4 @@ CREATE TABLE `schema_migration` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-12-03 10:52:21
+-- Dump completed on 2021-12-03 18:30:08

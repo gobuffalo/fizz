@@ -1,0 +1,2 @@
+rename_column("e2e_token", "issued_at", "iat")
+change_column("e2e_token", "expires_at", "timestamp", { "default": "2002-01-01 00:00:00" })

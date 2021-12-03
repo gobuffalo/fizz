@@ -16,6 +16,19 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `e2e_address`
+--
+
+DROP TABLE IF EXISTS `e2e_address`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `e2e_address` (
+  `id` char(36) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `e2e_authors`
 --
 
@@ -31,6 +44,46 @@ CREATE TABLE `e2e_authors` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `e2e_flow`
+--
+
+DROP TABLE IF EXISTS `e2e_flow`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `e2e_flow` (
+  `id` char(36) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `e2e_token`
+--
+
+DROP TABLE IF EXISTS `e2e_token`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `e2e_token` (
+  `id` char(36) NOT NULL,
+  `token` varchar(64) NOT NULL,
+  `e2e_flow_id` char(36) DEFAULT NULL,
+  `e2e_address_id` char(36) NOT NULL,
+  `expires_at` datetime NOT NULL DEFAULT '2002-01-01 00:00:00',
+  `iat` datetime NOT NULL DEFAULT '2000-01-01 00:00:00',
+  `flow_id` char(36) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `e2e_token_uq_idx` (`token`),
+  KEY `e2e_flow_id` (`e2e_flow_id`),
+  KEY `e2e_address_id` (`e2e_address_id`),
+  KEY `e2e_token_idx` (`token`),
+  KEY `e2e_token_flow_id_fk` (`flow_id`),
+  CONSTRAINT `e2e_token_flow_id_fk` FOREIGN KEY (`flow_id`) REFERENCES `e2e_flow` (`id`) ON UPDATE NO ACTION,
+  CONSTRAINT `e2e_token_ibfk_1` FOREIGN KEY (`e2e_flow_id`) REFERENCES `e2e_flow` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `e2e_token_ibfk_2` FOREIGN KEY (`e2e_address_id`) REFERENCES `e2e_address` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `e2e_user_posts`
 --
 
@@ -39,9 +92,10 @@ DROP TABLE IF EXISTS `e2e_user_posts`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `e2e_user_posts` (
   `id` char(36) NOT NULL,
-  `author_id` char(36) NOT NULL,
+  `author_id` char(36) DEFAULT NULL,
   `slug` varchar(32) NOT NULL,
   `content` varchar(255) NOT NULL DEFAULT '',
+  `published` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `e2e_user_notes_slug_idx` (`slug`),
   KEY `e2e_user_notes_user_id_idx` (`author_id`),
@@ -71,4 +125,4 @@ CREATE TABLE `schema_migration` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-12-03 18:30:04
+-- Dump completed on 2021-12-03 18:30:05

@@ -234,8 +234,21 @@ func (p *SQLite) RenameColumn(t fizz.Table) (string, error) {
 	if len(t.Columns) < 2 {
 		return "", fmt.Errorf("not enough columns supplied")
 	}
+
+	tableInfo, err := p.Schema.TableInfo(t.Name)
+	if err != nil {
+		return "", err
+	}
+
 	oc := t.Columns[0]
 	nc := t.Columns[1]
+	for k, c := range tableInfo.Columns {
+		if c.Name == oc.Name {
+			tableInfo.Columns[k].Name = nc.Name
+			break
+		}
+	}
+
 	s := fmt.Sprintf("ALTER TABLE \"%s\" RENAME COLUMN \"%s\" TO \"%s\";", t.Name, oc.Name, nc.Name)
 	return s, nil
 }
