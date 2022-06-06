@@ -9,5 +9,5 @@ require (
 	github.com/gobuffalo/pop/v6 v6.0.4
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 )
