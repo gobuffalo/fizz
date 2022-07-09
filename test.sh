@@ -22,10 +22,7 @@ trap cleanup EXIT
 docker-compose up -d
 sleep 10 # Ensure mysql is online
 
-if [[ "$GO111MODULE" != "on" ]]; then
-  go get -v -tags sqlite github.com/gobuffalo/pop/...
-  # go build -v -tags sqlite -o tsoda ./soda
-fi
+go install -tags sqlite github.com/gobuffalo/pop/v6/soda@latest
 
 function test {
   echo "!!! Testing $1"
@@ -38,7 +35,7 @@ function test {
   soda drop -e $SODA_DIALECT
   soda create -e $SODA_DIALECT
   echo "!!! Running e2e tests $1"
-  go test -tags sqlite,e2e -count=1 $verbose ./internal/e2e
+  cd testdata/e2e; go test -tags sqlite,e2e -count=1 $verbose ./...; cd ..
 }
 
 test "sqlite"
