@@ -27,6 +27,7 @@ generated/
 bin/*
 gin-bin
 .idea/
+.vscode/
 cockroach-data/
 migrations/schema.sql
 vendor/
