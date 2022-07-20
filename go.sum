@@ -15,8 +15,8 @@ github.com/gobuffalo/github_flavored_markdown v1.1.1 h1:kUf8ginyBOTRXcKSTPsPAqlA
 github.com/gobuffalo/github_flavored_markdown v1.1.1/go.mod h1:yU32Pen+eorS58oxh/bNZx76zUOCJwmvyV5FBrvzOKQ=
 github.com/gobuffalo/helpers v0.6.5 h1:Quf1KAUae97sdDmm/QP5V9P/0XYpK+HrhnYXU+nf65M=
 github.com/gobuffalo/helpers v0.6.5/go.mod h1:LA4zcc89tkZsfKpJIWsXLibiqTgZQ4EvDszfxdqr9ZA=
-github.com/gobuffalo/plush/v4 v4.1.13 h1:tru7S39kYaefzM+dk+W1bib65ZVkS1nV+6ARB7yPWn0=
-github.com/gobuffalo/plush/v4 v4.1.13/go.mod h1:s3hUyj/JlwEiJ039OBJevojq9xT40D1pgekw0o88CVU=
+github.com/gobuffalo/plush/v4 v4.1.14 h1:F3IRVRHVBVJZA4g//zbq0lyF+QBjNtZIGC6e/2k86L8=
+github.com/gobuffalo/plush/v4 v4.1.14/go.mod h1:s3hUyj/JlwEiJ039OBJevojq9xT40D1pgekw0o88CVU=
 github.com/gobuffalo/tags/v3 v3.1.3 h1:yhq9gudiEngYtPzH1KtMUknxffQBqwNfkHKP6i4l4NE=
 github.com/gobuffalo/tags/v3 v3.1.3/go.mod h1:WAAjKdskZUmdi6EkNjP2SXBwBwRovHsjJsPJbBiPlKc=
 github.com/gobuffalo/validate/v3 v3.3.2 h1:GZdJlDy6zDRXF5BnEiY+pGvGDFx95atMIWd3N3MMseE=
