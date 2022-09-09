@@ -1,42 +1,49 @@
 #!/bin/bash
+
 set -e
-clear
 
-verbose=""
+# NOTE: See also docker-compose.yml and database.yml to configure database
+# properties.
+export MYSQL_PORT=3307
+export COCKROACH_PORT=26258
 
-echo $@
+COMPOSE=docker-compose
+which docker-compose || COMPOSE="docker compose"
 
-if [[ "$@" == "-v" ]]
-then
-  verbose="-v"
-fi
+args=$@
 
 function cleanup {
     echo "Cleanup resources..."
-    docker-compose down
-    find ./sql_scripts/sqlite -name *.sqlite* -delete || true
+    $COMPOSE down
+    docker volume prune -f
+    find ./tmp -name *.sqlite* -delete || true
 }
 # defer cleanup, so it will be executed even after premature exit
 trap cleanup EXIT
 
-docker-compose up -d
-sleep 10 # Ensure mysql is online
-
-go install -tags sqlite github.com/gobuffalo/pop/v6/soda@latest
-
 function test {
-  echo "!!! Testing $1"
   export SODA_DIALECT=$1
+
+  echo ""
+  echo "######################################################################"
+  echo "### Running unit tests for $SODA_DIALECT"
   soda drop -e $SODA_DIALECT
   soda create -e $SODA_DIALECT
   soda migrate -e $SODA_DIALECT -p ./testdata/migrations
-  go test -tags sqlite -count=1 $verbose $(go list ./... | grep -v /vendor/)
-  echo "!!! Resetting $1"
+  go test -tags sqlite -count=1 $args ./...
+
+  echo ""
+  echo "######################################################################"
+  echo "### Running e2e tests for $1"
   soda drop -e $SODA_DIALECT
   soda create -e $SODA_DIALECT
-  echo "!!! Running e2e tests $1"
-  cd testdata/e2e; go test -tags sqlite,e2e -count=1 $verbose ./...; cd ..
+  pushd testdata/e2e; go test -tags sqlite,e2e -count=1 $args ./...; popd
 }
+
+
+$COMPOSE up --wait
+
+go install -tags sqlite github.com/gobuffalo/pop/v6/soda@latest
 
 test "sqlite"
 test "postgres"

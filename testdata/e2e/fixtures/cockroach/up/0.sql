@@ -1,4 +1,16 @@
-CREATE TABLE e2e_users (
+-- # 1 column
+-- # row 1
+-- ## 269
+CREATE TABLE public.schema_migration (
+	version VARCHAR(14) NOT NULL,
+	rowid INT8 NOT VISIBLE NOT NULL DEFAULT unique_rowid(),
+	CONSTRAINT "primary" PRIMARY KEY (rowid ASC),
+	UNIQUE INDEX schema_migration_version_idx (version ASC),
+	FAMILY "primary" (version, rowid)
+);
+-- # row 2
+-- ## 247
+CREATE TABLE public.e2e_users (
 	id UUID NOT NULL,
 	username VARCHAR(255) NULL,
 	created_at TIMESTAMP NOT NULL,
@@ -6,9 +18,4 @@ CREATE TABLE e2e_users (
 	CONSTRAINT "primary" PRIMARY KEY (id ASC),
 	FAMILY "primary" (id, username, created_at, updated_at)
 );
-
-CREATE TABLE schema_migration (
-	version VARCHAR(14) NOT NULL,
-	UNIQUE INDEX schema_migration_version_idx (version ASC),
-	FAMILY "primary" (version, rowid)
-);
+-- # 2 rows
