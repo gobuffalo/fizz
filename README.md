@@ -1,11 +1,28 @@
 # Fizz
 
 [![Actions Status](https://github.com/gobuffalo/fizz/workflows/Tests/badge.svg)](https://github.com/gobuffalo/fizz/actions)
-[![GoDoc](https://godoc.org/github.com/gobuffalo/fizz?status.svg)](https://godoc.org/github.com/gobuffalo/fizz)
+[![Go Reference](https://pkg.go.dev/badge/github.com/gobuffalo/fizz.svg)](https://pkg.go.dev/github.com/gobuffalo/fizz)
 
 A Common DSL for Migrating Databases
 
-## Create a Table
+
+## Supported Database Engines
+
+Fizz supports minimum supported version of all supported database engines.
+Currently, the following database engines are officially supported. (Since
+Fizz is used with the migration feature of Pop, supported databases and the
+versions are correlated with Pop.)
+
+* PostgreSQL 10
+* MySQL 5.7 / MariaDB 10.3
+* SQLite3 3.22
+* CockroachDB v21.1
+* MSSQL 2017 (not fully supported)
+
+
+## Usage
+
+### Create a Table
 
 ``` javascript
 create_table("users") {
@@ -28,7 +45,7 @@ create_table("todos") {
 }
 ```
 
-The `id` column don't have to be an integer. For instance, your can use an [`UUID`](https://github.com/gobuffalo/uuid) type instead:
+The `id` column don't have to be an integer. For instance, your can use an UUID type instead:
 
 ```javascript
 create_table("users") {
@@ -75,19 +92,19 @@ create_table("user_privileges") {
 
 Please note that the `t.PrimaryKey` statement MUST be after the columns definitions.
 
-## Drop a Table
+### Drop a Table
 
 ``` javascript
 drop_table("table_name")
 ```
 
-## Rename a Table
+### Rename a Table
 
 ``` javascript
 rename_table("old_table_name", "new_table_name")
 ```
 
-## Add a Column
+### Add a Column
 
 ``` javascript
 add_column("table_name", "column_name", "string", {})
@@ -95,69 +112,69 @@ add_column("table_name", "column_name", "string", {})
 
 See [above](#column-info) for more details on column types and options.
 
-## Alter a column
+### Alter a column
 
 ``` javascript
 change_column("table_name", "column_name", "string", {})
 ```
 
-## Rename a Column
+### Rename a Column
 
 ``` javascript
 rename_column("table_name", "old_column_name", "new_column_name")
 ```
 
-## Drop a Column
+### Drop a Column
 
 ``` javascript
 drop_column("table_name", "column_name")
 ```
 
-## Add an Index
+### Add an Index
 
 #### Supported Options:
 
 * `name` - This defaults to `table_name_column_name_idx`
 * `unique`
 
-### Simple Index:
+#### Simple Index:
 
 ``` javascript
 add_index("table_name", "column_name", {})
 ```
 
-### Multi-Column Index:
+#### Multi-Column Index:
 
 ``` javascript
 add_index("table_name", ["column_1", "column_2"], {})
 ```
 
-### Unique Index:
+#### Unique Index:
 
 ``` javascript
 add_index("table_name", "column_name", {"unique": true})
 ```
 
-### Index Names:
+#### Index Names:
 
 ``` javascript
 add_index("table_name", "column_name", {}) # name => table_name_column_name_idx
 add_index("table_name", "column_name", {"name": "custom_index_name"})
 ```
 
-## Rename an Index
+### Rename an Index
 
 ``` javascript
 rename_index("table_name", "old_index_name", "new_index_name")
 ```
 
-## Drop an Index
+### Drop an Index
 
 ``` javascript
 drop_index("table_name", "index_name")
 ```
 
-## Add a Foreign Key
+### Add a Foreign Key
 
 ```javascript
 add_foreign_key("table_name", "field", {"ref_table_name": ["ref_column"]}, {
@@ -176,7 +193,7 @@ add_foreign_key("table_name", "field", {"ref_table_name": ["ref_column"]}, {
 
 **Note:** `on_update` and `on_delete` are not supported on CockroachDB yet.
 
-## Drop a Foreign Key
+### Drop a Foreign Key
 
 ```javascript
 drop_foreign_key("table_name", "fk_name", {"if_exists": true})
@@ -187,13 +204,13 @@ drop_foreign_key("table_name", "fk_name", {"if_exists": true})
 * `if_exists` - Adds `IF EXISTS` condition
 
 
-## Raw SQL
+### Raw SQL
 
 ``` javascript
 sql("select * from users;")
 ```
 
-## Execute an External Command
+### Execute an External Command
 
 Sometimes during a migration you need to shell out to an external command.
 
