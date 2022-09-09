@@ -25,7 +25,7 @@ jobs:
         ports:
           - 3307:3306
         # needed because the mysql container does not provide a healthcheck
-        options: --health-cmd "mysqladmin ping -h localhost" --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd "mysqladmin ping -h localhost" --health-interval 5s --health-timeout 5s --health-retries 10
 
     steps:
       - uses: actions/checkout@v3
@@ -51,9 +51,9 @@ jobs:
         run: |
           go test -v -tags sqlite -race ./...
 
-      - name: Reset soda and run e2e
+      - name: Reset database and run e2e
         env:
-          SODA_DIALECT: "sqlite"
+          SODA_DIALECT: "mysql"
         run: |
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
@@ -77,9 +77,9 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
         ports:
-          - 5432:5432
+          - 5433:5432
         # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
 
     steps:
       - uses: actions/checkout@v3
@@ -105,9 +105,9 @@ jobs:
         run: |
           go test -v -tags sqlite -race ./...
 
-      - name: Reset soda and run e2e
+      - name: Reset database and run e2e
         env:
-          SODA_DIALECT: "sqlite"
+          SODA_DIALECT: "postgres"
         run: |
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
@@ -136,12 +136,15 @@ jobs:
           pushd crdb
           wget -qO- https://binaries.cockroachdb.com/cockroach-v21.1.19.linux-amd64.tgz | tar -xz
           mv cockroach-v21.1.19.linux-amd64/* .
+          ln -s `pwd`/cockroach /usr/local/bin/
+          cockroach version
           ./cockroach start-single-node --insecure --background
           popd
 
       - name: Install and run soda
         env:
           SODA_DIALECT: "cockroach"
+          COCKROACH_PORT: 26257
         run: |
           go install -tags sqlite github.com/gobuffalo/pop/v6/soda@latest
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
@@ -151,12 +154,14 @@ jobs:
       - name: Test
         env:
           SODA_DIALECT: "cockroach"
+          COCKROACH_PORT: 26257
         run: |
           go test -v -tags sqlite -race ./...
 
-      - name: Reset soda and run e2e
+      - name: Reset database and run e2e
         env:
-          SODA_DIALECT: "sqlite"
+          SODA_DIALECT: "cockroach"
+          COCKROACH_PORT: 26257
         run: |
           soda drop -e $SODA_DIALECT -p ./testdata/migrations
           soda create -e $SODA_DIALECT -p ./testdata/migrations
@@ -213,7 +218,7 @@ jobs:
           go test -v -tags sqlite ./...
         shell: bash
 
-      - name: Reset soda and run e2e
+      - name: Reset database and run e2e
         if: ${{ matrix.os != 'windows-latest' }}
         env:
           SODA_DIALECT: "sqlite"
@@ -224,7 +229,7 @@ jobs:
           go test -v -tags sqlite,e2e -race ./...
         shell: bash
 
-      - name: Reset soda and run e2e without race detection
+      - name: Reset database and run e2e without race detection
         if: ${{ matrix.os == 'windows-latest' }}
         env:
           SODA_DIALECT: "sqlite"
