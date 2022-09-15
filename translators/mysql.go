@@ -224,7 +224,8 @@ func (p *MySQL) buildColumn(c fizz.Column) string {
 		s = fmt.Sprintf("%s DEFAULT %s", s, d)
 	}
 
-	if c.Primary && (c.ColType == "integer" || strings.ToLower(c.ColType) == "int") {
+	// there are also tinyint, smallint, mediumint, and bigint
+	if c.Primary && (c.ColType == "integer" || strings.HasSuffix(strings.ToLower(c.ColType), "int")) {
 		s = fmt.Sprintf("%s AUTO_INCREMENT", s)
 	}
 	return s
