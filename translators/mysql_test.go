@@ -152,6 +152,33 @@ FOREIGN KEY (` + "`user_id`" + `) REFERENCES ` + "`users`" + ` (` + "`id`" + `)
 	r.Equal(ddl, res)
 }
 
+func (p *MySQLSuite) Test_MySQL_CreateTables_WithVariousInt() {
+	r := p.Require()
+	ddl := `CREATE TABLE ` + "`manyusers`" + ` (
+` + "`id`" + ` bigint NOT NULL AUTO_INCREMENT,
+` + `PRIMARY KEY(` + "`id`" + `),
+` + "`created_at`" + ` DATETIME NOT NULL,
+` + "`updated_at`" + ` DATETIME NOT NULL
+) ENGINE=InnoDB;
+` + `CREATE TABLE ` + "`someusers`" + ` (
+` + "`id`" + ` smallint NOT NULL AUTO_INCREMENT,
+` + `PRIMARY KEY(` + "`id`" + `),
+` + "`created_at`" + ` DATETIME NOT NULL,
+` + "`updated_at`" + ` DATETIME NOT NULL
+) ENGINE=InnoDB;`
+
+	res, err := fizz.AString(`
+	create_table("manyusers") {
+		t.Column("id", "bigint", {"primary": true})
+	}
+	create_table("someusers") {
+		t.Column("id", "smallint", {"primary": true})
+	}
+	`, myt)
+	r.NoError(err)
+	r.Equal(ddl, res)
+}
+
 func (p *MySQLSuite) Test_MySQL_CreateTables_WithCompositePrimaryKey() {
 	r := p.Require()
 	ddl := `CREATE TABLE ` + "`user_profiles`" + ` (
