@@ -79,6 +79,7 @@ For example for PostgreSQL you could pass `jsonb`and it will be supported, howev
 * `default_raw` - The default value defined as a database function.
 * `after` - (MySQL Only) Add a column after another column in the table. `example: {"after":"created_at"}`
 * `first` - (MySQL Only) Add a column to the first position in the table. `example: {"first": true}`
+* `comment` - (MySQL Only) The comment of the column. `example: {"comment": "A comment"}`
 
 #### Composite primary key 
 

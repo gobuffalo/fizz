@@ -17,6 +17,7 @@ type mysqlTableInfo struct {
 	Null    string      `db:"Null"`
 	Key     string      `db:"Key"`
 	Default interface{} `db:"Default"`
+	Comment string      `db:"Comment"`
 	Extra   string      `db:"Extra"`
 }
 
@@ -33,6 +34,9 @@ func (ti mysqlTableInfo) ToColumn() fizz.Column {
 	if ti.Default != nil {
 		d := fmt.Sprintf("%s", ti.Default)
 		c.Options["default"] = d
+	}
+	if len(ti.Comment) > 0 {
+		c.Options["comment"] = ti.Comment
 	}
 	return c
 }
@@ -98,7 +102,7 @@ func (p *mysqlSchema) Build() error {
 }
 
 func (p *mysqlSchema) buildTableData(table *fizz.Table, db *sql.DB) error {
-	prag := fmt.Sprintf("SELECT COLUMN_NAME AS `Field`, COLUMN_TYPE AS `Type`, IS_NULLABLE AS `Null`, COLUMN_KEY AS `Key`, COLUMN_DEFAULT AS `Default`, EXTRA AS `Extra` FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '%s';", table.Name)
+	prag := fmt.Sprintf("SELECT COLUMN_NAME AS `Field`, COLUMN_TYPE AS `Type`, IS_NULLABLE AS `Null`, COLUMN_KEY AS `Key`, COLUMN_DEFAULT AS `Default`, COLUMN_COMMENT AS `Comment`, EXTRA AS `Extra` FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s';", p.Name, table.Name)
 
 	res, err := db.Query(prag)
 	if err != nil {
@@ -108,7 +112,7 @@ func (p *mysqlSchema) buildTableData(table *fizz.Table, db *sql.DB) error {
 
 	for res.Next() {
 		ti := mysqlTableInfo{}
-		err = res.Scan(&ti.Field, &ti.Type, &ti.Null, &ti.Key, &ti.Default, &ti.Extra)
+		err = res.Scan(&ti.Field, &ti.Type, &ti.Null, &ti.Key, &ti.Default, &ti.Comment, &ti.Extra)
 		if err != nil {
 			return err
 		}
