@@ -199,6 +199,26 @@ PRIMARY KEY(` + "`user_id`" + `, ` + "`profile_id`" + `)
 	r.Equal(ddl, res)
 }
 
+func (p *MySQLSuite) Test_MySQL_CreateTables_WithComments() {
+	r := p.Require()
+	ddl := `CREATE TABLE ` + "`user_with_comments`" + ` (
+` + "`id`" + ` INTEGER NOT NULL AUTO_INCREMENT COMMENT 'Identifier',
+PRIMARY KEY(` + "`id`" + `),
+` + "`email`" + ` VARCHAR (20) NOT NULL COMMENT 'Private email',
+` + "`created_at`" + ` DATETIME NOT NULL,
+` + "`updated_at`" + ` DATETIME NOT NULL
+) ENGINE=InnoDB COMMENT='Table\'s comment';`
+
+	res, err := fizz.AString(`
+	create_table("user_with_comments", {"comment": "Table's comment"}) {
+		t.Column("id", "INT", {"primary": true, "comment": "Identifier"})
+		t.Column("email", "string", {"size":20, "comment": "Private email"})
+	}
+	`, myt)
+	r.NoError(err)
+	r.Equal(ddl, res)
+}
+
 func (p *MySQLSuite) Test_MySQL_DropTable() {
 	r := p.Require()
 
@@ -261,6 +281,16 @@ func (p *MySQLSuite) Test_MySQL_AddColumnFirst() {
 	ddl := `ALTER TABLE ` + "`users`" + ` ADD COLUMN ` + "`mycolumn`" + ` VARCHAR (50) NOT NULL DEFAULT 'foo' FIRST;`
 
 	res, err := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50, "first":true})`, myt)
+	r.NoError(err)
+
+	r.Equal(ddl, res)
+}
+
+func (p *MySQLSuite) Test_MySQL_AddColumnWithComment() {
+	r := p.Require()
+	ddl := `ALTER TABLE ` + "`user_with_comments`" + ` ADD COLUMN ` + "`name`" + ` VARCHAR (50) NOT NULL COMMENT 'Username';`
+
+	res, err := fizz.AString(`add_column("user_with_comments", "name", "string", {"size": 50, "comment": "Username"})`, myt)
 	r.NoError(err)
 
 	r.Equal(ddl, res)

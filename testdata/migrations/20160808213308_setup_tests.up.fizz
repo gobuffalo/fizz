@@ -43,3 +43,8 @@ create_table("taxis") {
   t.Column("model", "string")
   t.Column("user_id", "int", {null: true})
 }
+
+create_table("user_with_comments", {"comment": "Table's comment"}) {
+  t.Column("id", "int", {"primary": true, "comment": "Identifier"})
+  t.Column("email", "string", {"size": 20, "comment": "Private email"})
+}

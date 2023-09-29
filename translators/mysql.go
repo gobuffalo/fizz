@@ -53,6 +53,9 @@ func (p *MySQL) CreateTable(t fizz.Table) (string, error) {
 	}
 
 	s := fmt.Sprintf("CREATE TABLE %s (\n%s\n) ENGINE=InnoDB;", p.escapeIdentifier(t.Name), strings.Join(cols, ",\n"))
+	if t.Options["comment"] != nil {
+		s = fmt.Sprintf("%s COMMENT='%v';", s[:len(s)-1], strings.ReplaceAll(fmt.Sprintf("%v", t.Options["comment"]), "'", "\\'"))
+	}
 	sql = append(sql, s)
 
 	for _, i := range t.Indexes {
@@ -227,6 +230,9 @@ func (p *MySQL) buildColumn(c fizz.Column) string {
 	// there are also tinyint, smallint, mediumint, and bigint
 	if c.Primary && (c.ColType == "integer" || strings.HasSuffix(strings.ToLower(c.ColType), "int")) {
 		s = fmt.Sprintf("%s AUTO_INCREMENT", s)
+	}
+	if c.Options["comment"] != nil {
+		s = fmt.Sprintf("%s COMMENT '%v'", s, strings.ReplaceAll(fmt.Sprintf("%v", c.Options["comment"]), "'", "\\'"))
 	}
 	return s
 }
