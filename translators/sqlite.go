@@ -37,7 +37,7 @@ func (p *SQLite) CreateTable(t fizz.Table) (string, error) {
 	for _, c := range t.Columns {
 		if c.Primary {
 			switch strings.ToLower(c.ColType) {
-			case "integer", "int":
+			case "integer", "int", "bigint":
 				s = fmt.Sprintf("\"%s\" INTEGER PRIMARY KEY AUTOINCREMENT", c.Name)
 			case "string", "text", "uuid":
 				s = fmt.Sprintf("\"%s\" TEXT PRIMARY KEY", c.Name)
@@ -400,7 +400,7 @@ func (p *SQLite) colType(c fizz.Column) string {
 		return "NUMERIC"
 	case "string", "text":
 		return "TEXT"
-	case "int", "integer":
+	case "int", "integer", "bigint":
 		return "INTEGER"
 	case "float":
 		// precision and scale not supported here
