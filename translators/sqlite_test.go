@@ -145,6 +145,42 @@ PRIMARY KEY("user_id", "profile_id")
 	r.Equal(ddl, res)
 }
 
+func (p *SQLiteSuite) Test_SQLite_CreateTable_WithBigIntPrimaryKey() {
+	r := p.Require()
+	ddl := `CREATE TABLE "users" (
+"id" INTEGER PRIMARY KEY AUTOINCREMENT,
+"first_name" TEXT NOT NULL,
+"last_name" TEXT NOT NULL,
+"email" TEXT NOT NULL,
+"permissions" TEXT,
+"age" INTEGER DEFAULT '40',
+"raw" BLOB NOT NULL,
+"into" INTEGER NOT NULL,
+"flotante" REAL NOT NULL,
+"json" TEXT NOT NULL,
+"bytes" BLOB NOT NULL,
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL
+);`
+
+	res, _ := fizz.AString(`
+	create_table("users") {
+		t.Column("id", "bigint", {"primary": true})
+		t.Column("first_name", "string", {})
+		t.Column("last_name", "string", {})
+		t.Column("email", "string", {"size":20})
+		t.Column("permissions", "text", {"null": true})
+		t.Column("age", "integer", {"null": true, "default": 40})
+		t.Column("raw", "blob", {})
+		t.Column("into", "int", {})
+		t.Column("flotante", "float", {})
+		t.Column("json", "json", {})
+		t.Column("bytes", "[]byte", {})
+	}
+	`, sqt)
+	r.Equal(ddl, res)
+}
+
 func (p *SQLiteSuite) Test_SQLite_DropTable() {
 	r := p.Require()
 
@@ -204,6 +240,17 @@ func (p *SQLiteSuite) Test_SQLite_AddColumn() {
 	schema.schema["users"] = &fizz.Table{}
 
 	res, _ := fizz.AString(`add_column("users", "mycolumn", "string", {"default": "foo", "size": 50})`, sqt)
+
+	r.Equal(ddl, res)
+}
+
+func (p *SQLiteSuite) Test_SQLite_AddBigIntColumn() {
+	r := p.Require()
+
+	ddl := `ALTER TABLE "users" ADD COLUMN "mycolumn" INTEGER NOT NULL;`
+	schema.schema["users"] = &fizz.Table{}
+
+	res, _ := fizz.AString(`add_column("users", "mycolumn", "bigint")`, sqt)
 
 	r.Equal(ddl, res)
 }
