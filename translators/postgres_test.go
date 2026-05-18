@@ -207,6 +207,24 @@ func (p *PostgreSQLSuite) Test_Postgres_ChangeColumn() {
 	r.Equal(ddl, res)
 }
 
+func (p *PostgreSQLSuite) Test_Postgres_ChangeColumn_NullFalse() {
+	r := p.Require()
+	ddl := `ALTER TABLE "posts" ALTER COLUMN "destination_id" TYPE integer, ALTER COLUMN "destination_id" SET NOT NULL;`
+
+	res, _ := fizz.AString(`change_column("posts", "destination_id", "integer", {"null": false})`, pgt)
+
+	r.Equal(ddl, res)
+}
+
+func (p *PostgreSQLSuite) Test_Postgres_ChangeColumn_NullTrue() {
+	r := p.Require()
+	ddl := `ALTER TABLE "posts" ALTER COLUMN "destination_id" TYPE integer, ALTER COLUMN "destination_id" DROP NOT NULL;`
+
+	res, _ := fizz.AString(`change_column("posts", "destination_id", "integer", {"null": true})`, pgt)
+
+	r.Equal(ddl, res)
+}
+
 func (p *PostgreSQLSuite) Test_Postgres_AddColumn() {
 	r := p.Require()
 	ddl := `ALTER TABLE "mytable" ADD COLUMN "mycolumn" VARCHAR (50) NOT NULL DEFAULT 'foo';`
