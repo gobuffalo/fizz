@@ -191,7 +191,7 @@ func (p *Postgres) buildChangeColumn(c fizz.Column) string {
 	s := fmt.Sprintf("\"%s\" TYPE %s", c.Name, p.colType(c))
 
 	var sets []string
-	if c.Options["null"] == nil {
+	if c.Options["null"] == nil || c.Options["null"] == false {
 		sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" SET NOT NULL", c.Name))
 	} else {
 		sets = append(sets, fmt.Sprintf("ALTER COLUMN \"%s\" DROP NOT NULL", c.Name))
